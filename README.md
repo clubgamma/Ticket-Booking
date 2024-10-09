@@ -77,13 +77,13 @@ Welcome to Club Gamma project! We appreciate your interest and contributions. Pl
    - Clone the forked repository to your local machine.
 
    ```bash
-   git clone https://github.com/clubgamma/Internet-Speed-Tester.git
+   git clone https://github.com/clubgamma/Ticket-Booking.git
    ```
 
 3. **Navigate to the Project Directory:**
 
    ```bash
-   cd Internet-Speed-Tester
+   cd Ticket-Booking
    ```
 
 4. **Create a New Branch:**
@@ -120,7 +120,7 @@ To keep your fork up-to-date with the main repository and avoid conflicts:
 1. **Add Upstream Remote:**
 
    ```bash
-   git remote add upstream https://github.com/clubgamma/Sudoku.git
+   git remote add upstream https://github.com/clubgamma/Ticket-Booking.git
    ```
 
 2. **Verify the New Remote:**
