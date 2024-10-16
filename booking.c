@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <ctype.h>
+#include <time.h> 
 
 #define MAX_NAME_LENGTH 50
 #define MAX_DESTINATION_LENGTH 50
@@ -90,9 +91,17 @@ bool loadBookingProgress(struct PartialBooking *partial) {
     return success;
 }
 
+void generateReferenceNumber(char* refNumber, int ticketID) {
+    time_t t;
+    srand((unsigned) time(&t));
+    int random = rand() % 1000;
+    sprintf(refNumber, "REF-%d-%03d", ticketID, random);
+}
+
 void addBooking() {
     struct PartialBooking partial;
     bool resuming = false;
+    char bookingReference[20]; // To store the generated booking reference number
 
     if (loadPartialBooking(&partial) && partial.inProgress) {
         printf("You have a partially completed booking. Do you want to resume? (1: Yes, 0: No): ");
@@ -212,7 +221,15 @@ void addBooking() {
     if (fwrite(&partial.booking, sizeof(struct Booking), 1, file) != 1) {
         printf("Error: Failed to write booking data. Please try again.\n");
     } else {
+        // Generate and display booking receipt
+        generateReferenceNumber(bookingReference, partial.booking.ticketID);
         printf("Booking added successfully!\n");
+        printf("\nReceipt:\n");
+        printf("Booking Reference: %s\n", bookingReference);
+        printf("Ticket ID: %d\n", partial.booking.ticketID);
+        printf("Name: %s\n", partial.booking.name);
+        printf("Destination: %s\n", partial.booking.destination);
+        printf("Price: Rs. %.2f\n", partial.booking.price);
     }
     fclose(file);
 
@@ -221,7 +238,6 @@ void addBooking() {
     savePartialBooking(&partial);
     remove(PROGRESS_FILENAME); // Remove the progress file after successful booking
 }
-
 void displayBookings() {
     struct Booking booking;
     FILE *file = fopen(FILENAME, "rb");
@@ -236,7 +252,7 @@ void displayBookings() {
 
     while (fread(&booking, sizeof(struct Booking), 1, file) == 1) {
         printf("%-10d %-20s %-20s Rs.%-9.2f\n", 
-               booking.ticketID, booking.name, booking.destination, booking.price);
+                booking.ticketID, booking.name, booking.destination, booking.price);
     }
 
     if (ferror(file)) {
