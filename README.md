@@ -39,16 +39,32 @@ A simple ticket booking system implemented in C that allows users to add and dis
 
 2. Compile the program:
    ```bash
-   gcc -o ticket_booking_system ticket_booking_system.c
+   gcc -o booking booking.c
    ```
 
 ## Usage
 1. Run the compiled program:
    ```bash
-   ./ticket_booking_system
+   ./booking
    ```
 
 2. Follow the on-screen menu to add bookings or display existing ones.
+
+
+## Usage with Docker
+
+1. Build the Docker image:
+
+   ```bash
+   docker build -t ticket-booking-system .
+   ```
+
+2. Run the Docker container:
+
+   ```bash
+   docker run -it ticket-booking-system
+   ```
+   
 
 ## Code Structure
 - ticket_booking_system.c: The main source file containing the implementation of the ticket booking system.

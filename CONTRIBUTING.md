@@ -7,7 +7,7 @@ Welcome to Club Gamma project! We appreciate your interest and contributions. Pl
 - **Creativity Allowed:** Feel free to submit pull requests that break the rules—we might just merge them anyway!
 - **No Build Steps:** Avoid adding build steps like `npm install` to maintain simplicity as a static site.
 - **Preserve Existing Content:** Do not remove existing content.
-- **Code Style:** Your code can be neat, messy, simple, or complex. As long as it works, it's welcome.
+- **Code Style:** Your code can be neat, messy, simple, or complex. As long as it works, it's welcomed.
 - **Add Your Name:** Remember to add your name to the `contributorsList` file.
 - **Keep it Small:** Aim for small pull requests to minimize merge conflicts and streamline reviews.
 
