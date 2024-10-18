@@ -265,7 +265,78 @@ void displayBookings() {
 
     fclose(file);
 }
+void searchBookings() {
+    int searchChoice;
+    printf("\nSearch by:\n");
+    printf("1. Ticket ID\n");
+    printf("2. Name\n");
+    printf("Enter your choice: ");
+    if (scanf("%d", &searchChoice) != 1) {
+        printf("Error: Invalid input. Please enter a valid number.\n");
+        clearInputBuffer();
+        return;
+    }
+    clearInputBuffer();
 
+    struct Booking booking;
+    FILE *file = fopen(FILENAME, "rb");
+    if (file == NULL) {
+        printf(" error opening file.\n");
+        return;
+    }
+
+    bool found = false;
+    if (searchChoice == 1) {
+        int ticketID;
+        printf("Enter Ticket ID to search: ");
+        if (scanf("%d", &ticketID) != 1) {
+            printf("Error: Invalid input.\n");
+            clearInputBuffer();
+            fclose(file);
+            return;
+        }
+        clearInputBuffer();
+
+        while (fread(&booking, sizeof(struct Booking), 1, file) == 1) {
+            if (booking.ticketID == ticketID) {
+                printf("\nBooking Found:\n");
+                printf("Ticket ID: %d\n", booking.ticketID);
+                printf("Name: %s\n", booking.name);
+                printf("Destination: %s\n", booking.destination);
+                printf("Price: Rs. %.2f\n", booking.price);
+                found = true;
+                break;
+            }
+        }
+    } else if (searchChoice == 2) {
+        char name[MAX_NAME_LENGTH];
+        printf("Enter Name to search: ");
+        fgets(name, MAX_NAME_LENGTH, stdin);
+        name[strcspn(name, "\n")] = 0; // Remove newline
+
+        while (fread(&booking, sizeof(struct Booking), 1, file) == 1) {
+            if (strcasecmp(booking.name, name) == 0) {
+                printf("\nBooking Found:\n");
+                printf("Ticket ID: %d\n", booking.ticketID);
+                printf("Name: %s\n", booking.name);
+                printf("Destination: %s\n", booking.destination);
+                printf("Price: Rs. %.2f\n", booking.price);
+                found = true;
+                break;
+            }
+        }
+    } else {
+        printf("Invalid choice.\n");
+        fclose(file);
+        return;
+    }
+
+    if (!found) {
+        printf("No booking found with the given criteria.\n");
+    }
+
+    fclose(file);
+}
 int main() {
     int choice;
     struct PartialBooking partial;
@@ -276,6 +347,7 @@ int main() {
         printf("2. Display Bookings\n");
         printf("3. Save Progress and Exit\n");
         printf("4. Exit without Saving\n");
+        printf("5. Search Bookings\n");
         printf("Enter your choice: ");
         if (scanf("%d", &choice) != 1) {
             printf("Error: Invalid input. Please enter a number.\n");
@@ -302,6 +374,9 @@ int main() {
             case 4:
                 printf("Exiting without saving. Goodbye!\n");
                 exit(0);
+            case 5:
+                searchBookings();
+                break;
             default:
                 printf("Invalid choice. Please try again.\n");
         }
