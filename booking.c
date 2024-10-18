@@ -305,7 +305,7 @@ void searchBookings() {
                 printf("Destination: %s\n", booking.destination);
                 printf("Price: Rs. %.2f\n", booking.price);
                 found = true;
-                break;
+            
             }
         }
     } else if (searchChoice == 2) {
@@ -322,7 +322,7 @@ void searchBookings() {
                 printf("Destination: %s\n", booking.destination);
                 printf("Price: Rs. %.2f\n", booking.price);
                 found = true;
-                break;
+                
             }
         }
     } else {
