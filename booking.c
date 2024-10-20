@@ -15,8 +15,9 @@ struct Booking
 {
     int ticketID;
     char name[MAX_NAME_LENGTH];
+    char currentLocation[MAX_DESTINATION_LENGTH];
     char destination[MAX_DESTINATION_LENGTH];
-    float price;
+    int price;
 };
 
 struct PartialBooking
@@ -30,7 +31,7 @@ const char *indianCities[] = {
     "Mumbai", "Delhi", "Bangalore", "Hyderabad", "Chennai",
     "Kolkata", "Jaipur", "Ahmedabad", "Pune", "Lucknow"};
 
-int ticketPrices[] = { 1500, 1300, 1200, 1100, 1150, 1250, 1400, 1350, 1600, 900};
+int ticketPrices[] = {1500, 1300, 1200, 1100, 1150, 1250, 1400, 1350, 1600, 900};
 const int numCities = sizeof(indianCities) / sizeof(indianCities[0]);
 
 void clearInputBuffer()
@@ -118,15 +119,24 @@ void generateReferenceNumber(char *refNumber, int ticketID)
     sprintf(refNumber, "REF-%d-%03d", ticketID, random);
 }
 
-int getPriceForCity(const char *city)
+int getPriceForCity(const char *currentCity, const char *destinationCity, int n)
 {
+    int current = -1, destination = -1;
     int numCities = sizeof(indianCities) / sizeof(indianCities[0]);
     for (int i = 0; i < numCities; i++)
     {
-        if (strcmp(city, indianCities[i]) == 0)
+        if (strcmp(currentCity, indianCities[i]) == 0)
         {
-            return ticketPrices[i];
+            current = i;
         }
+        if (strcmp(destinationCity, indianCities[i]) == 0)
+        {
+            destination = i;
+        }
+    }
+    if (current != -1 && destination != -1)
+    {
+        return (abs(ticketPrices[current] - ticketPrices[destination]) * n);
     }
     return -1;
 }
@@ -217,6 +227,34 @@ void addBooking()
 
     if (!resuming || partial.stage <= 2)
     {
+        int currentChoice;
+        //Implement 'Current Location' and Traveler Count Input for Accurate Price Calculation #15
+        printf("Enter your current location :\n");      //fixes#15
+        for (int i = 0; i < numCities; i++)
+        {
+            printf("%d. %s\n", i + 1, indianCities[i]);
+        }
+
+        do
+        {
+            printf("Enter the  number of your current location (1-%d):, or 0 to pause ", numCities);
+            if (scanf("%d", &currentChoice) != 1 || currentChoice < 0 || currentChoice > numCities)
+            {
+                printf("Error: Invalid choice. Please enter a number between 0 and %d.\n", numCities);
+                clearInputBuffer();
+                continue;
+            }
+            if (currentChoice == 0)
+            {
+                savePartialBooking(&partial);
+                printf("Booking paused. You can resume later.\n");
+                return;
+            }
+            break;
+        } while (1);
+        strcpy(partial.booking.currentLocation, indianCities[currentChoice - 1]);
+        clearInputBuffer();
+
         int choice;
         printf("Select Destination:\n");
         for (int i = 0; i < numCities; i++)
@@ -240,14 +278,29 @@ void addBooking()
             }
             break;
         } while (1);
+
+        int n;
+        do
+        {
+            printf("Enter how many number of Travelers : ");
+            if (scanf("%d", &n) != 1 || n <= 0)
+            {
+                printf("Invalid input. Please enter a valid number of travelers (greater than 0).\n");
+                while (getchar() != '\n')
+                    continue;
+            }
+            break;
+        } while (1);
+
         strcpy(partial.booking.destination, indianCities[choice - 1]);
+
         clearInputBuffer();
         partial.stage = 3;
-
-        partial.booking.price = getPriceForCity(partial.booking.destination);
+        partial.booking.price = getPriceForCity(partial.booking.currentLocation, partial.booking.destination, n);
+        printf("Price for the trip is : %d\n", partial.booking.price);
         if (partial.booking.price != -1)
         {
-            printf("The price for %s is $%d\n", partial.booking.destination, partial.booking.price);
+            printf("The price from %s to %s is Rs. %d\n", partial.booking.currentLocation, partial.booking.destination, partial.booking.price);
         }
         else
         {
@@ -276,8 +329,9 @@ void addBooking()
         printf("Booking Reference: %s\n", bookingReference);
         printf("Ticket ID: %d\n", partial.booking.ticketID);
         printf("Name: %s\n", partial.booking.name);
+        printf("currentLocation: %s\n",partial.booking.currentLocation);
         printf("Destination: %s\n", partial.booking.destination);
-        printf("Price: Rs. %.2f\n", partial.booking.price);
+        printf("Price: Rs. %d\n", partial.booking.price);
     }
     fclose(file);
 
