@@ -303,6 +303,13 @@ void addBooking()
             break;
         } while (1);
 
+           // Check for same pickup and destination
+        if (currentChoice - 1 == choice - 1)
+        {
+            printf("Pickup point and destination cannot be the same.\n");
+            return; 
+        }
+
         int n;
         do
         {
