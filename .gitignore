@@ -1,4 +1,5 @@
 *.exe
 tempCodeRunnerFile.c
 .vscode
-
+bookings.dat
+partial_booking.dat
