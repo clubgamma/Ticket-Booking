@@ -154,34 +154,31 @@ int getPriceForCity(const char *currentCity, const char *destinationCity, int n,
         }
     }
 
-    if (current != -1 && destination != -1) {
-        return ticketPrices[current][categoryIndex] * n; // Use category index for pricing
+    if (current != -1 && destination != -1) {   //Dynamic Pricing #30 by vasu
+        int basePrice = ticketPrices[current][categoryIndex] * n;
+        time_t currentTime;
+        time(&currentTime);
+        struct tm *timeInfo = localtime(&currentTime);
+
+        int hoursToDeparture = (23 - timeInfo->tm_hour);
+        //we increse 40% if booking within 6 hours of departure and 20% for 12 hours
+        float timeFactor = 1.0;
+        if (hoursToDeparture <= 6) {
+            timeFactor = 1.4;
+        } else if (hoursToDeparture <= 12) {
+            timeFactor = 1.2;
+        }
+
+        //based on demand currently it is random
+        srand(time(NULL));
+        float demandFactor = (rand() % 71 + 80) / 100.0; 
+
+        int dynamicPrice = (int)(basePrice * timeFactor * demandFactor);
+        return dynamicPrice;
     }
 
     return -1; 
 }
-
-// int getPriceForCity(const char *currentCity, const char *destinationCity, int n)
-// {
-//     int current = -1, destination = -1;
-//     int numCities = sizeof(indianCities) / sizeof(indianCities[0]);
-//     for (int i = 0; i < numCities; i++)
-//     {
-//         if (strcmp(currentCity, indianCities[i]) == 0)
-//         {
-//             current = i;
-//         }
-//         if (strcmp(destinationCity, indianCities[i]) == 0)
-//         {
-//             destination = i;
-//         }
-//     }
-//     if (current != -1 && destination != -1)
-//     {
-//         return (abs(ticketPrices[current] - ticketPrices[destination]) * n);
-//     }
-//     return -1;
-// }
 
 int unique_id(){       //Automatically Generate Unique, Non-Repeating Ticket IDs #16 by Vasu
     static int counter = 0;
@@ -375,7 +372,7 @@ void addBooking()
        partial.booking.price = getPriceForCity(partial.booking.currentLocation,
                                                 partial.booking.destination,
                                                 n,
-                                                categoryIndex);
+                                                categoryIndex-1);
 
        // Display summary before finalizing booking
        printf("\n--- Booking Summary ---\n");
@@ -384,7 +381,7 @@ void addBooking()
        printf("Current Location: %s\n", partial.booking.currentLocation);
        printf("Destination: %s\n", partial.booking.destination);
        printf("Number of Travelers: %d\n", n);
-       printf("Category: %s\n", ticketCategories[categoryChoice - 1]);
+       printf("Category: %s\n", ticketCategories[categoryChoice]);
        printf("Price: Rs.%d\n", partial.booking.price);
 
       char confirm[10]; 
