@@ -831,6 +831,74 @@ void cancelBooking() {
     rename("temp.dat", FILENAME); // Replace original file with updated file
 }
 
+void PopularDestinations()
+{
+    struct Booking booking;
+    FILE *file = fopen(FILENAME, "rb");
+
+    int destinationCounts[MAX_DESTINATION_LENGTH];
+
+    memset(destinationCounts, 0, sizeof(destinationCounts));
+
+    if (file == NULL)
+    {
+        printf("Error opening bookings file.\n");
+        return;
+    }
+
+    while (fread(&booking, sizeof(struct Booking), 1, file) == 1)
+    {
+        for (int i = 0; i < numCities; i++)
+        {
+            if (strcmp(booking.destination, indianCities[i]) == 0)
+            {
+                destinationCounts[i]++;
+                break;
+            }
+        }
+    }
+
+    fclose(file);
+
+    printf("\n--- Popular Destinations ---\n");
+    for (int i = 0; i < numCities; i++)
+    {
+        if (destinationCounts[i] > 0)
+        {
+            printf("%s: %d bookings\n", indianCities[i], destinationCounts[i]);
+        }
+    }
+}
+
+void RevenueStatistics()
+{
+    struct Booking booking;
+    FILE *file = fopen(FILENAME, "rb");
+    int totalRevenue = 0;
+
+    if (file == NULL)
+    {
+        printf("Error opening bookings file.\n");
+        return;
+    }
+
+    while (fread(&booking, sizeof(struct Booking), 1, file) == 1)
+    {
+        totalRevenue += booking.price;
+    }
+
+    fclose(file);
+    printf("\n--- Revenue Statistics ---\n");
+    printf("Total Revenue from Bookings: Rs. %d\n", totalRevenue);
+}
+
+void generateReports() {
+    printf("\n--- Reports and Analytics ---\n");
+    PopularDestinations();
+    RevenueStatistics();
+}
+
+
 int main()
 {
     int choice;
@@ -846,6 +914,7 @@ int main()
         printf("5. Search Bookings\n");
         printf("6. Modify Booking\n");
         printf("7. Cancel Booking\n");
+        printf("8. View Report\n");
         printf("Enter your choice: ");
         if (scanf("%d", &choice) != 1)
         {
@@ -896,6 +965,9 @@ int main()
         case 7:
             cancelBooking();
             break;
+         case 8:
+            generateReports();
+            break;    
         default:
             printf("Invalid choice. Please try again.\n");
         }
