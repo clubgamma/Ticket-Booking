@@ -440,6 +440,7 @@ fclose(file);
     remove(PROGRESS_FILENAME); // Remove the progress file after successful booking
 }
 */
+}
 void displayBookings()
 {
     struct Booking booking;
