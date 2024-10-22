@@ -710,7 +710,7 @@ void modifyBooking() {
             for (int i = 0; i < numCities; i++) {
                 printf("%d. %s\n", i + 1, indianCities[i]);
             }
-
+            printf("current location : ")
             int currentLocationChoice = selectCity();
             if (currentLocationChoice > 0) {
                 strncpy(booking.currentLocation, indianCities[currentLocationChoice - 1], MAX_DESTINATION_LENGTH);
@@ -723,6 +723,7 @@ void modifyBooking() {
                 printf("%d. %s\n", i + 1, indianCities[i]);
             }
 
+            printf("destination location : ")
             int newDestChoice = selectCity();
             if (newDestChoice > 0) {
                 strncpy(booking.destination, indianCities[newDestChoice - 1], MAX_DESTINATION_LENGTH);
