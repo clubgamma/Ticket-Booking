@@ -650,8 +650,25 @@ bool cityExists(const char* cityName) {
     return false;
 }
 
+int selectCity() {
+    int choice;
+
+    while (1) {
+        printf("Please select a city (1-%d) or 0 to skip: ", numCities);
+        if (scanf("%d", &choice) != 1 || choice < 0 || choice > numCities) {
+            printf("Error: Invalid input. Please enter a number between 0 and %d.\n", numCities);
+            clearInputBuffer();
+        } else {
+            break; // Valid input received
+        }
+    }
+
+    clearInputBuffer(); 
+    return choice;
+}
+
 void modifyBooking() {
-     int ticketID;
+    int ticketID;
     printf("Enter Ticket ID to modify: ");
     if (scanf("%d", &ticketID) != 1) {
         printf("Error: Invalid input.\n");
@@ -679,45 +696,38 @@ void modifyBooking() {
             printf("Current Location: %s\n", booking.currentLocation);
             printf("Destination: %s\n", booking.destination);
             printf("Price: Rs. %d\n", booking.price);
-            printf("Number of Travelers: %d\n", booking.price / getPriceForCity(booking.currentLocation, booking.destination, 1, 0)); // Assuming category index 0 is Standard
 
-            // Modify Name
+            // Modify the Name
             printf("Enter new name (leave blank for no change): ");
             char newName[MAX_NAME_LENGTH];
             fgets(newName, MAX_NAME_LENGTH, stdin);
-            newName[strcspn(newName, "\n")] = 0; 
-            
+            newName[strcspn(newName, "\n")] = 0;
             if (strlen(newName) > 0) {
                 strncpy(booking.name, newName, MAX_NAME_LENGTH);
             }
 
-            // Modify Current Location
-            displayCities();
-            char newLocation[MAX_DESTINATION_LENGTH];
-            printf("Enter new current location (leave blank for no change): ");
-            fgets(newLocation, MAX_DESTINATION_LENGTH, stdin);
-            newLocation[strcspn(newLocation, "\n")] = 0; // Remove newline
-            if (strlen(newLocation) > 0 && cityExists(newLocation)) {
-                strncpy(booking.currentLocation, newLocation, MAX_DESTINATION_LENGTH);
-            } else if (strlen(newLocation) > 0) {
-                printf("Error: Invalid city name.\n");
+            // Display Indian Cities and Modify Current Location
+            for (int i = 0; i < numCities; i++) {
+                printf("%d. %s\n", i + 1, indianCities[i]);
             }
 
-            // Modify Destination
-            displayCities();
-            
-            char newDestination[MAX_DESTINATION_LENGTH];
-            
-            printf("Enter new destination (leave blank for no change): ");
-            
-            fgets(newDestination, MAX_DESTINATION_LENGTH, stdin);
-            newDestination[strcspn(newDestination, "\n")] = 0; // Remove newline
-            
-            if (strlen(newDestination) > 0 && cityExists(newDestination)) {
-                strncpy(booking.destination, newDestination, MAX_DESTINATION_LENGTH);
-            } 
-            else if (strlen(newDestination) > 0) {
-                printf("Error: Invalid city name.\n");
+            int currentLocationChoice = selectCity();
+            if (currentLocationChoice > 0) {
+                strncpy(booking.currentLocation, indianCities[currentLocationChoice - 1], MAX_DESTINATION_LENGTH);
+            } else if (currentLocationChoice == 0) {
+                printf("No change to the current location.\n");
+            }
+
+            // Display Cities and Modify Destination Location
+            for (int i = 0; i < numCities; i++) {
+                printf("%d. %s\n", i + 1, indianCities[i]);
+            }
+
+            int newDestChoice = selectCity();
+            if (newDestChoice > 0) {
+                strncpy(booking.destination, indianCities[newDestChoice - 1], MAX_DESTINATION_LENGTH);
+            } else if (newDestChoice == 0) {
+                printf("No change to the destination.\n");
             }
 
             // Modify Number of Travelers
@@ -736,14 +746,15 @@ void modifyBooking() {
             // Modify Ticket Category
             int categoryChoice;
             printf("Select Ticket Category:\n");
-            
             for (int i = 0; i < sizeof(ticketCategories) / sizeof(ticketCategories[0]); i++) {
                 printf("%d. %s\n", i + 1, ticketCategories[i]);
             }
 
             do {
                 printf("Enter the number of your selected category (1-%ld): ", sizeof(ticketCategories) / sizeof(ticketCategories[0]));
-                if (scanf("%d", &categoryChoice) != 1 || categoryChoice < 1 || categoryChoice > sizeof(ticketCategories) / sizeof(ticketCategories[0])) {
+                if (scanf("%d", &categoryChoice) != 1 ||
+                    categoryChoice < 1 ||
+                    categoryChoice > sizeof(ticketCategories) / sizeof(ticketCategories[0])) {
                     printf("Error: Invalid choice. Please enter a number between 1 and %ld.\n", sizeof(ticketCategories) / sizeof(ticketCategories[0]));
                     clearInputBuffer();
                     continue;
