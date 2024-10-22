@@ -634,6 +634,194 @@ void removeLastBooking() {
     free(bookings); // Free the allocated array
 }
 
+void displayCities() {
+    printf("Available Cities:\n");
+    for (int i = 0; i < numCities; i++) {
+        printf("%d. %s\n", i + 1, indianCities[i]);
+    }
+}
+
+bool cityExists(const char* cityName) {
+    for (int i = 0; i < numCities; i++) {
+        if (strcasecmp(indianCities[i], cityName) == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void modifyBooking() {
+     int ticketID;
+    printf("Enter Ticket ID to modify: ");
+    if (scanf("%d", &ticketID) != 1) {
+        printf("Error: Invalid input.\n");
+        clearInputBuffer();
+        return;
+    }
+    clearInputBuffer();
+
+    struct Booking booking;
+    FILE *file = fopen(FILENAME, "rb");
+    FILE *tempFile = fopen("temp.dat", "wb");
+    if (file == NULL || tempFile == NULL) {
+        printf("Error opening file.\n");
+        if (file) fclose(file);
+        if (tempFile) fclose(tempFile);
+        return;
+    }
+
+    bool found = false;
+    while (fread(&booking, sizeof(struct Booking), 1, file) == 1) {
+        if (booking.ticketID == ticketID) {
+            found = true;
+            printf("Current Booking Details:\n");
+            printf("Name: %s\n", booking.name);
+            printf("Current Location: %s\n", booking.currentLocation);
+            printf("Destination: %s\n", booking.destination);
+            printf("Price: Rs. %d\n", booking.price);
+            printf("Number of Travelers: %d\n", booking.price / getPriceForCity(booking.currentLocation, booking.destination, 1, 0)); // Assuming category index 0 is Standard
+
+            // Modify Name
+            printf("Enter new name (leave blank for no change): ");
+            char newName[MAX_NAME_LENGTH];
+            fgets(newName, MAX_NAME_LENGTH, stdin);
+            newName[strcspn(newName, "\n")] = 0; 
+            
+            if (strlen(newName) > 0) {
+                strncpy(booking.name, newName, MAX_NAME_LENGTH);
+            }
+
+            // Modify Current Location
+            displayCities();
+            char newLocation[MAX_DESTINATION_LENGTH];
+            printf("Enter new current location (leave blank for no change): ");
+            fgets(newLocation, MAX_DESTINATION_LENGTH, stdin);
+            newLocation[strcspn(newLocation, "\n")] = 0; // Remove newline
+            if (strlen(newLocation) > 0 && cityExists(newLocation)) {
+                strncpy(booking.currentLocation, newLocation, MAX_DESTINATION_LENGTH);
+            } else if (strlen(newLocation) > 0) {
+                printf("Error: Invalid city name.\n");
+            }
+
+            // Modify Destination
+            displayCities();
+            
+            char newDestination[MAX_DESTINATION_LENGTH];
+            
+            printf("Enter new destination (leave blank for no change): ");
+            
+            fgets(newDestination, MAX_DESTINATION_LENGTH, stdin);
+            newDestination[strcspn(newDestination, "\n")] = 0; // Remove newline
+            
+            if (strlen(newDestination) > 0 && cityExists(newDestination)) {
+                strncpy(booking.destination, newDestination, MAX_DESTINATION_LENGTH);
+            } 
+            else if (strlen(newDestination) > 0) {
+                printf("Error: Invalid city name.\n");
+            }
+
+            // Modify Number of Travelers
+            int n;
+            do {
+                printf("Enter new number of travelers: ");
+                if (scanf("%d", &n) != 1 || n <= 0) {
+                    printf("Invalid input. Please enter a valid number of travelers (greater than zero).\n");
+                    clearInputBuffer();
+                } else {
+                    break;
+                }
+            } while (1);
+            clearInputBuffer();
+
+            // Modify Ticket Category
+            int categoryChoice;
+            printf("Select Ticket Category:\n");
+            
+            for (int i = 0; i < sizeof(ticketCategories) / sizeof(ticketCategories[0]); i++) {
+                printf("%d. %s\n", i + 1, ticketCategories[i]);
+            }
+
+            do {
+                printf("Enter the number of your selected category (1-%ld): ", sizeof(ticketCategories) / sizeof(ticketCategories[0]));
+                if (scanf("%d", &categoryChoice) != 1 || categoryChoice < 1 || categoryChoice > sizeof(ticketCategories) / sizeof(ticketCategories[0])) {
+                    printf("Error: Invalid choice. Please enter a number between 1 and %ld.\n", sizeof(ticketCategories) / sizeof(ticketCategories[0]));
+                    clearInputBuffer();
+                    continue;
+                }
+                break;
+
+            } while (1);
+
+            // Recalculate price based on new details
+            booking.price = getPriceForCity(booking.currentLocation, booking.destination, n, categoryChoice - 1);
+
+            if (booking.price < 0) {
+                printf("Error: Unable to calculate the price based on provided locations and category.\n");
+                fclose(file);
+                fclose(tempFile);
+                return;
+            }
+
+            // Write updated booking to temp file
+            fwrite(&booking, sizeof(struct Booking), 1, tempFile);
+            printf("Booking modified successfully!\n");
+        } else {
+            // Write unchanged booking to temp file
+            fwrite(&booking, sizeof(struct Booking), 1, tempFile);
+        }
+    }
+
+    if (!found) {
+        printf("Booking with Ticket ID %d not found.\n", ticketID);
+    }
+
+    fclose(file);
+    fclose(tempFile);
+    remove(FILENAME);
+    rename("temp.dat", FILENAME); // Replace original file with updated file
+}
+
+void cancelBooking() {
+    int ticketID;
+    printf("Enter Ticket ID to cancel: ");
+    if (scanf("%d", &ticketID) != 1) {
+        printf("Error: Invalid input.\n");
+        clearInputBuffer();
+        return;
+    }
+    clearInputBuffer();
+
+    struct Booking booking;
+    FILE *file = fopen(FILENAME, "rb");
+    FILE *tempFile = fopen("temp.dat", "wb");
+    if (file == NULL || tempFile == NULL) {
+        printf("Error opening file.\n");
+        if (file) fclose(file);
+        if (tempFile) fclose(tempFile);
+        return;
+    }
+
+    bool found = false;
+    while (fread(&booking, sizeof(struct Booking), 1, file) == 1) {
+        if (booking.ticketID == ticketID) {
+            found = true;
+            printf("Booking with Ticket ID %d has been canceled successfully!\n", ticketID);
+        } else {
+            // Write unchanged booking to temp file
+            fwrite(&booking, sizeof(struct Booking), 1, tempFile);
+        }
+    }
+
+    if (!found) {
+        printf("Booking with Ticket ID %d not found.\n", ticketID);
+    }
+
+    fclose(file);
+    fclose(tempFile);
+    remove(FILENAME);
+    rename("temp.dat", FILENAME); // Replace original file with updated file
+}
+
 int main()
 {
     int choice;
@@ -647,6 +835,8 @@ int main()
         printf("3. Save Progress and Exit\n");
         printf("4. Exit without Saving\n");
         printf("5. Search Bookings\n");
+        printf("6. Modify Booking\n");
+        printf("7. Cancel Booking\n");
         printf("Enter your choice: ");
         if (scanf("%d", &choice) != 1)
         {
@@ -690,6 +880,12 @@ int main()
             
         case 5:
             searchBookings();
+            break;
+        case 6:
+            modifyBooking();
+            break;
+        case 7:
+            cancelBooking();
             break;
         default:
             printf("Invalid choice. Please try again.\n");
