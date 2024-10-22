@@ -141,6 +141,12 @@ int getPriceForCity(const char *currentCity, const char *destinationCity, int n)
     return -1;
 }
 
+int unique_id(){       //Automatically Generate Unique, Non-Repeating Ticket IDs #16 by Vasu
+    static int counter = 0;
+    time_t now = time(NULL);
+    return ((int)(now % 1234) | counter++);
+}
+
 void addBooking()
 {
     struct PartialBooking partial;
@@ -177,24 +183,7 @@ void addBooking()
 
     if (!resuming || partial.stage == 0)
     {
-        do
-        {
-            printf("Enter Ticket ID (positive integer, or 0 to pause): ");
-            if (scanf("%d", &partial.booking.ticketID) != 1 || partial.booking.ticketID < 0)
-            {
-                printf("Error: Invalid Ticket ID. Please enter a positive integer.\n");
-                clearInputBuffer();
-                continue;
-            }
-            if (partial.booking.ticketID == 0)
-            {
-                savePartialBooking(&partial);
-                printf("Booking paused. You can resume later.\n");
-                return;
-            }
-            break;
-        } while (1);
-        clearInputBuffer();
+        partial.booking.ticketID = unique_id();
         partial.stage = 1;
     }
 
