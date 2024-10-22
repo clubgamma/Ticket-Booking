@@ -18,6 +18,7 @@ struct Booking
     char currentLocation[MAX_DESTINATION_LENGTH];
     char destination[MAX_DESTINATION_LENGTH];
     int price;
+    char category[MAX_NAME_LENGTH];
 };
 
 struct PartialBooking
@@ -31,7 +32,22 @@ const char *indianCities[] = {
     "Mumbai", "Delhi", "Bangalore", "Hyderabad", "Chennai",
     "Kolkata", "Jaipur", "Ahmedabad", "Pune", "Lucknow"};
 
-int ticketPrices[] = {1500, 1300, 1200, 1100, 1150, 1250, 1400, 1350, 1600, 900};
+//int ticketPrices[] = {1500, 1300, 1200, 1100, 1150, 1250, 1400, 1350, 1600, 900};
+
+const char *ticketCategories[] = {"Standard", "VIP"}; // Ticket categories
+int ticketPrices[][2] = { // Prices for each category
+    {1500, 2500}, // Standard and VIP prices for Mumbai
+    {1300, 2300}, // Delhi
+    {1200, 2200}, // Bangalore
+    {1100, 2100}, // Hyderabad
+    {1150, 2150}, // Chennai
+    {1250, 2250}, // Kolkata
+    {1400, 2400}, // Jaipur
+    {1350, 2350}, // Ahmedabad
+    {1600, 2600}, // Pune
+    {900, 1900}   // Lucknow
+};
+
 const int numCities = sizeof(indianCities) / sizeof(indianCities[0]);
 
 void clearInputBuffer()
@@ -119,27 +135,46 @@ void generateReferenceNumber(char *refNumber, int ticketID)
     sprintf(refNumber, "REF-%d-%03d", ticketID, random);
 }
 
-int getPriceForCity(const char *currentCity, const char *destinationCity, int n)
-{
+int getPriceForCity(const char *currentCity, const char *destinationCity, int n, int categoryIndex) {
     int current = -1, destination = -1;
-    int numCities = sizeof(indianCities) / sizeof(indianCities[0]);
-    for (int i = 0; i < numCities; i++)
-    {
-        if (strcmp(currentCity, indianCities[i]) == 0)
-        {
+
+    for (int i = 0; i < numCities; i++) {
+        if (strcmp(currentCity, indianCities[i]) == 0) {
             current = i;
         }
-        if (strcmp(destinationCity, indianCities[i]) == 0)
-        {
+        if (strcmp(destinationCity, indianCities[i]) == 0) {
             destination = i;
         }
     }
-    if (current != -1 && destination != -1)
-    {
-        return (abs(ticketPrices[current] - ticketPrices[destination]) * n);
+
+    if (current != -1 && destination != -1) {
+        return ticketPrices[current][categoryIndex] * n; // Use category index for pricing
     }
-    return -1;
+
+    return -1; 
 }
+
+// int getPriceForCity(const char *currentCity, const char *destinationCity, int n)
+// {
+//     int current = -1, destination = -1;
+//     int numCities = sizeof(indianCities) / sizeof(indianCities[0]);
+//     for (int i = 0; i < numCities; i++)
+//     {
+//         if (strcmp(currentCity, indianCities[i]) == 0)
+//         {
+//             current = i;
+//         }
+//         if (strcmp(destinationCity, indianCities[i]) == 0)
+//         {
+//             destination = i;
+//         }
+//     }
+//     if (current != -1 && destination != -1)
+//     {
+//         return (abs(ticketPrices[current] - ticketPrices[destination]) * n);
+//     }
+//     return -1;
+// }
 
 int unique_id(){       //Automatically Generate Unique, Non-Repeating Ticket IDs #16 by Vasu
     static int counter = 0;
@@ -284,21 +319,95 @@ void addBooking()
         strcpy(partial.booking.destination, indianCities[choice - 1]);
 
         clearInputBuffer();
-        partial.stage = 3;
-        partial.booking.price = getPriceForCity(partial.booking.currentLocation, partial.booking.destination, n);
-        printf("Price for the trip is : %d\n", partial.booking.price);
+
+         int categoryChoice;
+
+        printf("Select Ticket Category:\n");
+       for (int i = 0; i < sizeof(ticketCategories)/sizeof(ticketCategories[0]); i++) {
+            printf("%d. %s\n", i + 1, ticketCategories[i]);
+        }
+
+        do {
+            printf("Enter the number of your selected category (1-%d): ", sizeof(ticketCategories)/sizeof(ticketCategories[0]));
+
+            if (scanf("%d", &categoryChoice) != 1 || categoryChoice < 1 || categoryChoice > sizeof(ticketCategories)/sizeof(ticketCategories[0])) {
+                printf("Error: Invalid choice. Please enter a number between 1 and %ld.\n", sizeof(ticketCategories)/sizeof(ticketCategories[0]));
+                clearInputBuffer();
+                continue;
+            }
+            break;
+
+        } while(1);
+
+        strcpy(partial.booking.category, ticketCategories[categoryChoice - 1]); // Store selected category
+
+        partial.stage =3;
+
+        // Calculate price based on selected category
+        int categoryIndex = categoryChoice - 1; 
+
+        partial.booking.price = getPriceForCity(partial.booking.currentLocation,
+                                                 partial.booking.destination,
+                                                 n,
+                                                 categoryIndex);
+
         if (partial.booking.price != -1)
-        {
-            printf("The price from %s to %s is Rs. %d\n", partial.booking.currentLocation, partial.booking.destination, partial.booking.price);
-        }
+            printf("The price from %s to %s for %d traveler(s): Rs. %d\n",
+                   partial.booking.currentLocation,
+                   partial.booking.destination,
+                   n,
+                   partial.booking.price);
         else
-        {
             printf("Error: Could not find price for the selected city.\n");
-        }
-    }
+   }
+        
+    //     partial.stage = 3;
+    //     partial.booking.price = getPriceForCity(partial.booking.currentLocation, partial.booking.destination, n);
+    //     printf("Price for the trip is : %d\n", partial.booking.price);
+    //     if (partial.booking.price != -1)
+    //     {
+    //         printf("The price from %s to %s is Rs. %d\n", partial.booking.currentLocation, partial.booking.destination, partial.booking.price);
+    //     }
+    //     else
+    //     {
+    //         printf("Error: Could not find price for the selected city.\n");
+    //     }
+    // }
 
     // Finalize booking
-    FILE *file = fopen(FILENAME, "ab");
+      // Finalize booking
+FILE *file = fopen(FILENAME, "ab");
+if (file == NULL)
+{
+    printf("Error: Unable to open bookings file. Booking not saved.\n");
+    return;
+}
+
+if (fwrite(&partial.booking, sizeof(struct Booking), 1, file) != 1)
+{
+    printf("Error: Failed to write booking data. Please try again.\n");
+}
+else
+{
+    // Generate and display booking receipt
+    generateReferenceNumber(bookingReference, partial.booking.ticketID);
+    printf("Booking added successfully!\n");
+    printf("\nReceipt:\n");
+    printf("Booking Reference: %s\n", bookingReference);
+    printf("Ticket ID: %d\n", partial.booking.ticketID);
+    printf("Name: %s\n", partial.booking.name);
+    printf("Current Location: %s\n", partial.booking.currentLocation);
+    printf("Destination: %s\n", partial.booking.destination);
+    printf("Category: %s\n", partial.booking.category);
+    printf("Price: Rs. %d\n", partial.booking.price);
+}
+fclose(file);
+
+    // Clear partial booking
+    partial.inProgress = false;
+    savePartialBooking(&partial);
+    remove(PROGRESS_FILENAME); 
+    /* FILE *file = fopen(FILENAME, "ab");
     if (file == NULL)
     {
         printf("Error: Unable to open bookings file. Booking not saved.\n");
@@ -320,6 +429,7 @@ void addBooking()
         printf("Name: %s\n", partial.booking.name);
         printf("currentLocation: %s\n",partial.booking.currentLocation);
         printf("Destination: %s\n", partial.booking.destination);
+        printf("Category: %s\n", partial.booking.category);
         printf("Price: Rs. %d\n", partial.booking.price);
     }
     fclose(file);
@@ -328,6 +438,8 @@ void addBooking()
     partial.inProgress = false;
     savePartialBooking(&partial);
     remove(PROGRESS_FILENAME); // Remove the progress file after successful booking
+}
+*/
 }
 void displayBookings()
 {
@@ -340,28 +452,53 @@ void displayBookings()
         return;
     }
 
-    printf("\n%-10s %-20s %-20s %s\n", "Ticket ID", "Name", "Destination", "Price");
-    printf("----------------------------------------------------------\n");
+    printf("\n%-10s %-20s %-20s %-20s %s\n", "Ticket ID", "Name", "Current Location", "Destination", "Price");
+    printf("--------------------------------------------------------------------------------------------------\n");
 
     while (fread(&booking, sizeof(struct Booking), 1, file) == 1)
     {
-        printf("%-10d %-20s %-20s Rs.%d\n",
-               booking.ticketID, booking.name, booking.destination, booking.price);
+        printf("%-10d %-20s %-20s %-20s Rs.%d\n",
+               booking.ticketID, booking.name, booking.currentLocation, booking.destination, booking.price);
     }
 
     if (ferror(file))
     {
         printf("Error occurred while reading the file.\n");
     }
-    else if (feof(file))
-    {
-        if (ftell(file) == 0)
-        {
-            printf("No bookings found.\n");
-        }
-    }
 
     fclose(file);
+    // struct Booking booking;
+    // FILE *file = fopen(FILENAME, "rb");
+
+    // if (file == NULL)
+    // {
+    //     printf("No bookings found or error opening file.\n");
+    //     return;
+    // }
+
+    // printf("\n%-10s %-20s %-20s %s\n", "Ticket ID", "Name", "Destination", "Price");
+    // printf("----------------------------------------------------------\n");
+
+    // while (fread(&booking, sizeof(struct Booking), 1, file) == 1)
+    // {
+    //     printf("%-10d %-20s %-20s Rs.%d\n",
+    //            booking.ticketID, booking.name, booking.destination, booking.price);
+    // }
+
+    // if (ferror(file))
+    // {
+    //     printf("Error occurred while reading the file.\n");
+    // }
+    // else if (feof(file))
+    // {
+    //     if (ftell(file) == 0)
+    //     {
+    //         printf("No bookings found.\n");
+    //     }
+    // }
+
+    // fclose(file);
+    
 }
 void searchBookings()
 {
