@@ -59,14 +59,21 @@ void clearInputBuffer()
 
 bool isValidName(const char *name)
 {
-    for (int i = 0; name[i]; i++)
-    {
-        if (!isalpha(name[i]) && !isspace(name[i]))
-        {
+    if (isspace(name[0])) {
+        return false;
+    }
+    for (const char *p = name; *p; p++) {
+        if (*p != ' ' && !isalpha(*p)) {
             return false;
         }
     }
-    return true;
+    // Check if name contains at least one non-space character
+    for (const char *p = name; *p; p++) {
+        if (*p != ' ') {
+            return true;
+        }
+    }
+    return false;
 }
 
 void savePartialBooking(struct PartialBooking *partial)
