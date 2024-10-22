@@ -600,6 +600,40 @@ void searchBookings()
 
     fclose(file);
 }
+
+// exit without save functionality 
+void removeLastBooking() {
+    struct Booking *bookings = NULL;
+    int count = 0;
+    FILE *file = fopen(FILENAME, "rb");
+    if (file == NULL) {
+        return; 
+    }
+
+    // Count the number of bookings and read them into an array
+    while (!feof(file)) {
+        bookings = realloc(bookings, (count + 1) * sizeof(struct Booking));
+        if (fread(&bookings[count], sizeof(struct Booking), 1, file) == 1) {
+            count++;
+        }
+    }
+    fclose(file);
+
+    // If there are bookings, overwrite the file excluding the last booking
+    if (count > 1) {
+        file = fopen(FILENAME, "wb");
+        for (int i = 0; i < count - 1; i++) {
+            fwrite(&bookings[i], sizeof(struct Booking), 1, file);
+        }
+        fclose(file);
+    } else {
+        // If there was only one booking, just remove the file
+        remove(FILENAME);
+    }
+
+    free(bookings); // Free the allocated array
+}
+
 int main()
 {
     int choice;
@@ -642,8 +676,18 @@ int main()
             }
             exit(0);
         case 4:
-            printf("Exiting without saving. Goodbye!\n");
-            exit(0);
+            // Remove the booking file if it exists
+            removeLastBooking();
+            printf("Exiting without saving.\n");
+
+           // Remove partial booking file if it exists
+            if (remove(PARTIAL_BOOKING_FILENAME) == 0) {
+                 printf("Unsaved progress cleared.\n");
+            } else {
+              printf("No unsaved progress to clear.\n");
+            }
+             exit(0);
+            
         case 5:
             searchBookings();
             break;
