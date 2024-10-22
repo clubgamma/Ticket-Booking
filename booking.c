@@ -375,7 +375,39 @@ void addBooking()
     // }
 
     // Finalize booking
-    FILE *file = fopen(FILENAME, "ab");
+      // Finalize booking
+FILE *file = fopen(FILENAME, "ab");
+if (file == NULL)
+{
+    printf("Error: Unable to open bookings file. Booking not saved.\n");
+    return;
+}
+
+if (fwrite(&partial.booking, sizeof(struct Booking), 1, file) != 1)
+{
+    printf("Error: Failed to write booking data. Please try again.\n");
+}
+else
+{
+    // Generate and display booking receipt
+    generateReferenceNumber(bookingReference, partial.booking.ticketID);
+    printf("Booking added successfully!\n");
+    printf("\nReceipt:\n");
+    printf("Booking Reference: %s\n", bookingReference);
+    printf("Ticket ID: %d\n", partial.booking.ticketID);
+    printf("Name: %s\n", partial.booking.name);
+    printf("Current Location: %s\n", partial.booking.currentLocation);
+    printf("Destination: %s\n", partial.booking.destination);
+    printf("Category: %s\n", partial.booking.category);
+    printf("Price: Rs. %d\n", partial.booking.price);
+}
+fclose(file);
+
+    // Clear partial booking
+    partial.inProgress = false;
+    savePartialBooking(&partial);
+    remove(PROGRESS_FILENAME); 
+    /* FILE *file = fopen(FILENAME, "ab");
     if (file == NULL)
     {
         printf("Error: Unable to open bookings file. Booking not saved.\n");
@@ -407,6 +439,7 @@ void addBooking()
     savePartialBooking(&partial);
     remove(PROGRESS_FILENAME); // Remove the progress file after successful booking
 }
+*/
 void displayBookings()
 {
     struct Booking booking;
@@ -418,28 +451,53 @@ void displayBookings()
         return;
     }
 
-    printf("\n%-10s %-20s %-20s %s\n", "Ticket ID", "Name", "Destination", "Price");
-    printf("----------------------------------------------------------\n");
+    printf("\n%-10s %-20s %-20s %-20s %s\n", "Ticket ID", "Name", "Current Location", "Destination", "Price");
+    printf("--------------------------------------------------------------------------------------------------\n");
 
     while (fread(&booking, sizeof(struct Booking), 1, file) == 1)
     {
-        printf("%-10d %-20s %-20s Rs.%d\n",
-               booking.ticketID, booking.name, booking.destination, booking.price);
+        printf("%-10d %-20s %-20s %-20s Rs.%d\n",
+               booking.ticketID, booking.name, booking.currentLocation, booking.destination, booking.price);
     }
 
     if (ferror(file))
     {
         printf("Error occurred while reading the file.\n");
     }
-    else if (feof(file))
-    {
-        if (ftell(file) == 0)
-        {
-            printf("No bookings found.\n");
-        }
-    }
 
     fclose(file);
+    // struct Booking booking;
+    // FILE *file = fopen(FILENAME, "rb");
+
+    // if (file == NULL)
+    // {
+    //     printf("No bookings found or error opening file.\n");
+    //     return;
+    // }
+
+    // printf("\n%-10s %-20s %-20s %s\n", "Ticket ID", "Name", "Destination", "Price");
+    // printf("----------------------------------------------------------\n");
+
+    // while (fread(&booking, sizeof(struct Booking), 1, file) == 1)
+    // {
+    //     printf("%-10d %-20s %-20s Rs.%d\n",
+    //            booking.ticketID, booking.name, booking.destination, booking.price);
+    // }
+
+    // if (ferror(file))
+    // {
+    //     printf("Error occurred while reading the file.\n");
+    // }
+    // else if (feof(file))
+    // {
+    //     if (ftell(file) == 0)
+    //     {
+    //         printf("No bookings found.\n");
+    //     }
+    // }
+
+    // fclose(file);
+    
 }
 void searchBookings()
 {
