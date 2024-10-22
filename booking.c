@@ -340,12 +340,12 @@ void displayBookings()
         return;
     }
 
-    printf("\n%-10s %-20s %-20s %-10s\n", "Ticket ID", "Name", "Destination", "Price");
+    printf("\n%-10s %-20s %-20s %s\n", "Ticket ID", "Name", "Destination", "Price");
     printf("----------------------------------------------------------\n");
 
     while (fread(&booking, sizeof(struct Booking), 1, file) == 1)
     {
-        printf("%-10d %-20s %-20s Rs.%-9.2f\n",
+        printf("%-10d %-20s %-20s Rs.%d\n",
                booking.ticketID, booking.name, booking.destination, booking.price);
     }
 
