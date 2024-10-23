@@ -599,6 +599,308 @@ void searchBookings()
 
     fclose(file);
 }
+
+// exit without save functionality 
+void removeLastBooking() {
+    struct Booking *bookings = NULL;
+    int count = 0;
+    FILE *file = fopen(FILENAME, "rb");
+    if (file == NULL) {
+        return; 
+    }
+
+    // Count the number of bookings and read them into an array
+    while (!feof(file)) {
+        bookings = realloc(bookings, (count + 1) * sizeof(struct Booking));
+        if (fread(&bookings[count], sizeof(struct Booking), 1, file) == 1) {
+            count++;
+        }
+    }
+    fclose(file);
+
+    // If there are bookings, overwrite the file excluding the last booking
+    if (count > 1) {
+        file = fopen(FILENAME, "wb");
+        for (int i = 0; i < count - 1; i++) {
+            fwrite(&bookings[i], sizeof(struct Booking), 1, file);
+        }
+        fclose(file);
+    } else {
+        // If there was only one booking, just remove the file
+        remove(FILENAME);
+    }
+
+    free(bookings); // Free the allocated array
+}
+
+void displayCities() {
+    printf("Available Cities:\n");
+    for (int i = 0; i < numCities; i++) {
+        printf("%d. %s\n", i + 1, indianCities[i]);
+    }
+}
+
+bool cityExists(const char* cityName) {
+    for (int i = 0; i < numCities; i++) {
+        if (strcasecmp(indianCities[i], cityName) == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+int selectCity() {
+    int choice;
+
+    while (1) {
+        printf("Please select a city (1-%d) or 0 to skip: ", numCities);
+        if (scanf("%d", &choice) != 1 || choice < 0 || choice > numCities) {
+            printf("Error: Invalid input. Please enter a number between 0 and %d.\n", numCities);
+            clearInputBuffer();
+        } else {
+            break; // Valid input received
+        }
+    }
+
+    clearInputBuffer(); 
+    return choice;
+}
+
+void modifyBooking() {
+    int ticketID;
+    printf("Enter Ticket ID to modify: ");
+    if (scanf("%d", &ticketID) != 1) {
+        printf("Error: Invalid input.\n");
+        clearInputBuffer();
+        return;
+    }
+    clearInputBuffer();
+
+    struct Booking booking;
+    FILE *file = fopen(FILENAME, "rb");
+    FILE *tempFile = fopen("temp.dat", "wb");
+    if (file == NULL || tempFile == NULL) {
+        printf("Error opening file.\n");
+        if (file) fclose(file);
+        if (tempFile) fclose(tempFile);
+        return;
+    }
+
+    bool found = false;
+    while (fread(&booking, sizeof(struct Booking), 1, file) == 1) {
+        if (booking.ticketID == ticketID) {
+            found = true;
+            printf("Current Booking Details:\n");
+            printf("Name: %s\n", booking.name);
+            printf("Current Location: %s\n", booking.currentLocation);
+            printf("Destination: %s\n", booking.destination);
+            printf("Price: Rs. %d\n", booking.price);
+
+            // Modify the Name
+            printf("Enter new name (leave blank for no change): ");
+            char newName[MAX_NAME_LENGTH];
+            fgets(newName, MAX_NAME_LENGTH, stdin);
+            newName[strcspn(newName, "\n")] = 0;
+            if (strlen(newName) > 0) {
+                strncpy(booking.name, newName, MAX_NAME_LENGTH);
+            }
+
+            // Display Indian Cities and Modify Current Location
+            for (int i = 0; i < numCities; i++) {
+                printf("%d. %s\n", i + 1, indianCities[i]);
+            }
+            printf("current location : ");
+            int currentLocationChoice = selectCity();
+            if (currentLocationChoice > 0) {
+                strncpy(booking.currentLocation, indianCities[currentLocationChoice - 1], MAX_DESTINATION_LENGTH);
+            } else if (currentLocationChoice == 0) {
+                printf("No change to the current location.\n");
+            }
+
+            // Display Cities and Modify Destination Location
+            for (int i = 0; i < numCities; i++) {
+                printf("%d. %s\n", i + 1, indianCities[i]);
+            }
+
+            printf("destination location : ");
+            int newDestChoice = selectCity();
+            if (newDestChoice > 0) {
+                strncpy(booking.destination, indianCities[newDestChoice - 1], MAX_DESTINATION_LENGTH);
+            } else if (newDestChoice == 0) {
+                printf("No change to the destination.\n");
+            }
+
+            // Modify Number of Travelers
+            int n;
+            do {
+                printf("Enter new number of travelers: ");
+                if (scanf("%d", &n) != 1 || n <= 0) {
+                    printf("Invalid input. Please enter a valid number of travelers (greater than zero).\n");
+                    clearInputBuffer();
+                } else {
+                    break;
+                }
+            } while (1);
+            clearInputBuffer();
+
+            // Modify Ticket Category
+            int categoryChoice;
+            printf("Select Ticket Category:\n");
+            for (int i = 0; i < sizeof(ticketCategories) / sizeof(ticketCategories[0]); i++) {
+                printf("%d. %s\n", i + 1, ticketCategories[i]);
+            }
+
+            do {
+                printf("Enter the number of your selected category (1-%ld): ", sizeof(ticketCategories) / sizeof(ticketCategories[0]));
+                if (scanf("%d", &categoryChoice) != 1 ||
+                    categoryChoice < 1 ||
+                    categoryChoice > sizeof(ticketCategories) / sizeof(ticketCategories[0])) {
+                    printf("Error: Invalid choice. Please enter a number between 1 and %ld.\n", sizeof(ticketCategories) / sizeof(ticketCategories[0]));
+                    clearInputBuffer();
+                    continue;
+                }
+                break;
+
+            } while (1);
+
+            // Recalculate price based on new details
+            booking.price = getPriceForCity(booking.currentLocation, booking.destination, n, categoryChoice - 1);
+
+            if (booking.price < 0) {
+                printf("Error: Unable to calculate the price based on provided locations and category.\n");
+                fclose(file);
+                fclose(tempFile);
+                return;
+            }
+
+            // Write updated booking to temp file
+            fwrite(&booking, sizeof(struct Booking), 1, tempFile);
+            printf("Booking modified successfully!\n");
+        } else {
+            // Write unchanged booking to temp file
+            fwrite(&booking, sizeof(struct Booking), 1, tempFile);
+        }
+    }
+
+    if (!found) {
+        printf("Booking with Ticket ID %d not found.\n", ticketID);
+    }
+
+    fclose(file);
+    fclose(tempFile);
+    remove(FILENAME);
+    rename("temp.dat", FILENAME); // Replace original file with updated file
+}
+
+void cancelBooking() {
+    int ticketID;
+    printf("Enter Ticket ID to cancel: ");
+    if (scanf("%d", &ticketID) != 1) {
+        printf("Error: Invalid input.\n");
+        clearInputBuffer();
+        return;
+    }
+    clearInputBuffer();
+
+    struct Booking booking;
+    FILE *file = fopen(FILENAME, "rb");
+    FILE *tempFile = fopen("temp.dat", "wb");
+    if (file == NULL || tempFile == NULL) {
+        printf("Error opening file.\n");
+        if (file) fclose(file);
+        if (tempFile) fclose(tempFile);
+        return;
+    }
+
+    bool found = false;
+    while (fread(&booking, sizeof(struct Booking), 1, file) == 1) {
+        if (booking.ticketID == ticketID) {
+            found = true;
+            printf("Booking with Ticket ID %d has been canceled successfully!\n", ticketID);
+        } else {
+            // Write unchanged booking to temp file
+            fwrite(&booking, sizeof(struct Booking), 1, tempFile);
+        }
+    }
+
+    if (!found) {
+        printf("Booking with Ticket ID %d not found.\n", ticketID);
+    }
+
+    fclose(file);
+    fclose(tempFile);
+    remove(FILENAME);
+    rename("temp.dat", FILENAME); // Replace original file with updated file
+}
+
+void PopularDestinations()
+{
+    struct Booking booking;
+    FILE *file = fopen(FILENAME, "rb");
+
+    int destinationCounts[MAX_DESTINATION_LENGTH];
+
+    memset(destinationCounts, 0, sizeof(destinationCounts));
+
+    if (file == NULL)
+    {
+        printf("Error opening bookings file.\n");
+        return;
+    }
+
+    while (fread(&booking, sizeof(struct Booking), 1, file) == 1)
+    {
+        for (int i = 0; i < numCities; i++)
+        {
+            if (strcmp(booking.destination, indianCities[i]) == 0)
+            {
+                destinationCounts[i]++;
+                break;
+            }
+        }
+    }
+
+    fclose(file);
+
+    printf("\n--- Popular Destinations ---\n");
+    for (int i = 0; i < numCities; i++)
+    {
+        if (destinationCounts[i] > 0)
+        {
+            printf("%s: %d bookings\n", indianCities[i], destinationCounts[i]);
+        }
+    }
+}
+
+void RevenueStatistics()
+{
+    struct Booking booking;
+    FILE *file = fopen(FILENAME, "rb");
+    int totalRevenue = 0;
+
+    if (file == NULL)
+    {
+        printf("Error opening bookings file.\n");
+        return;
+    }
+
+    while (fread(&booking, sizeof(struct Booking), 1, file) == 1)
+    {
+        totalRevenue += booking.price;
+    }
+
+    fclose(file);
+    printf("\n--- Revenue Statistics ---\n");
+    printf("Total Revenue from Bookings: Rs. %d\n", totalRevenue);
+}
+
+void generateReports() {
+    printf("\n--- Reports and Analytics ---\n");
+    PopularDestinations();
+    RevenueStatistics();
+}
+
+
 int main()
 {
     while(1){
@@ -621,6 +923,7 @@ void showMenu(){
 void handleInput(){
     int choice;
     struct PartialBooking partial;
+
     while(1){
         printf("Enter your choice: ");
         if (scanf("%d", &choice) != 1) {
@@ -649,11 +952,30 @@ void handleInput(){
             }
             exit(0);
         case 4:
-            printf("Exiting without saving. Goodbye!\n");
-            exit(0);
+            // Remove the booking file if it exists
+            removeLastBooking();
+            printf("Exiting without saving.\n");
+
+           // Remove partial booking file if it exists
+            if (remove(PARTIAL_BOOKING_FILENAME) == 0) {
+                 printf("Unsaved progress cleared.\n");
+            } else {
+              printf("No unsaved progress to clear.\n");
+            }
+             exit(0);
+            
         case 5:
             searchBookings();
             break;
+        case 6:
+            modifyBooking();
+            break;
+        case 7:
+            cancelBooking();
+            break;
+         case 8:
+            generateReports();
+            break;    
         default:
             printf("Invalid choice. Please try again.\n");
         }
