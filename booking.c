@@ -912,6 +912,7 @@ int main()
     return 0;
 }
 
+//add all the function to the showMenu()
 void showMenu(){
     printf("\nTicket Booking System\n");
     printf("1. Add/Resume Booking\n");
@@ -919,6 +920,9 @@ void showMenu(){
     printf("3. Save Progress and Exit\n");
     printf("4. Exit without Saving\n");
     printf("5. Search Bookings\n");
+    printf("6. Edit Booking\n");
+    printf("7. Cancle Booking\n");
+    printf("8. Generate Reports\n");
     printf("Enter your choice: ");
 }
 
@@ -938,11 +942,9 @@ void handleInput(){
         {
         case 1:
             addBooking();
-            showMenu();
             break;
         case 2:
             displayBookings();
-            showMenu();
             break;
         case 3:
              if (partial.inProgress) {
@@ -962,22 +964,19 @@ void handleInput(){
              exit(0);
         case 5:
             searchBookings();
-            showMenu();
             break;
         case 6:
             modifyBooking();
-            showMenu();
             break;
         case 7:
             cancelBooking();
-            showMenu();
             break;
          case 8:
             generateReports();
-            showMenu();
             break;    
         default:
             printf("Invalid choice. Please try again.\n");
         }
+        showMenu();
     }
 }
