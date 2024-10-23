@@ -560,7 +560,8 @@ void searchBookings()
                 printf("Ticket ID: %d\n", booking.ticketID);
                 printf("Name: %s\n", booking.name);
                 printf("Destination: %s\n", booking.destination);
-                printf("Price: Rs. %.2f\n", booking.price);
+                printf("Category: %s\n",booking.category);
+                printf("Price: Rs. %d\n", booking.price);
                 found = true;
             }
         }
@@ -580,7 +581,8 @@ void searchBookings()
                 printf("Ticket ID: %d\n", booking.ticketID);
                 printf("Name: %s\n", booking.name);
                 printf("Destination: %s\n", booking.destination);
-                printf("Price: Rs. %.2f\n", booking.price);
+                printf("Category: %s",booking.category);
+                printf("Price: Rs. %d\n", booking.price);
                 found = true;
             }
         }
