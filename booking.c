@@ -48,6 +48,8 @@ int ticketPrices[][2] = { // Prices for each category
     {900, 1900}   // Lucknow
 };
 
+void showMenu();
+void handleInput();
 const int numCities = sizeof(indianCities) / sizeof(indianCities[0]);
 
 void clearInputBuffer()
@@ -599,26 +601,34 @@ void searchBookings()
 }
 int main()
 {
+    while(1){
+        showMenu();
+    handleInput(); 
+    }
+    return 0;
+}
+
+void showMenu(){
+    printf("\nTicket Booking System\n");
+    printf("1. Add/Resume Booking\n");
+    printf("2. Display Bookings\n");
+    printf("3. Save Progress and Exit\n");
+    printf("4. Exit without Saving\n");
+    printf("5. Search Bookings\n");
+    printf("Enter your choice: ");
+}
+
+void handleInput(){
     int choice;
     struct PartialBooking partial;
-
-    while (1)
-    {
-        printf("\nTicket Booking System\n");
-        printf("1. Add/Resume Booking\n");
-        printf("2. Display Bookings\n");
-        printf("3. Save Progress and Exit\n");
-        printf("4. Exit without Saving\n");
-        printf("5. Search Bookings\n");
+    while(1){
         printf("Enter your choice: ");
-        if (scanf("%d", &choice) != 1)
-        {
-            printf("Error: Invalid input. Please enter a number.\n");
+        if (scanf("%d", &choice) != 1) {
+            printf("Invalid input. Please enter a number.\n");
             clearInputBuffer();
             continue;
         }
         clearInputBuffer();
-
         switch (choice)
         {
         case 1:
@@ -648,6 +658,4 @@ int main()
             printf("Invalid choice. Please try again.\n");
         }
     }
-
-    return 0;
 }
