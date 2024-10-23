@@ -905,7 +905,7 @@ int main()
 {
     while(1){
         showMenu();
-    handleInput(); 
+        handleInput(); 
     }
     return 0;
 }
@@ -936,9 +936,11 @@ void handleInput(){
         {
         case 1:
             addBooking();
+            showMenu();
             break;
         case 2:
             displayBookings();
+            showMenu();
             break;
         case 3:
             if (loadPartialBooking(&partial) && partial.inProgress)
@@ -966,15 +968,19 @@ void handleInput(){
             
         case 5:
             searchBookings();
+            showMenu();
             break;
         case 6:
             modifyBooking();
+            showMenu();
             break;
         case 7:
             cancelBooking();
+            showMenu();
             break;
          case 8:
             generateReports();
+            showMenu();
             break;    
         default:
             printf("Invalid choice. Please try again.\n");
