@@ -383,7 +383,7 @@ void addBooking()
        printf("Current Location: %s\n", partial.booking.currentLocation);
        printf("Destination: %s\n", partial.booking.destination);
        printf("Number of Travelers: %d\n", n);
-       printf("Category: %s\n", ticketCategories[categoryChoice]);
+       printf("Category: %s\n", ticketCategories[categoryChoice-1]);
        printf("Price: Rs.%d\n", partial.booking.price);
 
       char confirm[10]; 
@@ -905,7 +905,7 @@ int main()
 {
     while(1){
         showMenu();
-    handleInput(); 
+        handleInput(); 
     }
     return 0;
 }
@@ -936,9 +936,11 @@ void handleInput(){
         {
         case 1:
             addBooking();
+            showMenu();
             break;
         case 2:
             displayBookings();
+            showMenu();
             break;
         case 3:
              if (partial.inProgress) {
@@ -958,15 +960,19 @@ void handleInput(){
              exit(0);
         case 5:
             searchBookings();
+            showMenu();
             break;
         case 6:
             modifyBooking();
+            showMenu();
             break;
         case 7:
             cancelBooking();
+            showMenu();
             break;
          case 8:
             generateReports();
+            showMenu();
             break;    
         default:
             printf("Invalid choice. Please try again.\n");
