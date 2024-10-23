@@ -383,7 +383,7 @@ void addBooking()
        printf("Current Location: %s\n", partial.booking.currentLocation);
        printf("Destination: %s\n", partial.booking.destination);
        printf("Number of Travelers: %d\n", n);
-       printf("Category: %s\n", ticketCategories[categoryChoice]);
+       printf("Category: %s\n", ticketCategories[categoryChoice-1]);
        printf("Price: Rs.%d\n", partial.booking.price);
 
       char confirm[10]; 
