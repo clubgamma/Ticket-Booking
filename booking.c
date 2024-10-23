@@ -941,29 +941,21 @@ void handleInput(){
             displayBookings();
             break;
         case 3:
-            if (loadPartialBooking(&partial) && partial.inProgress)
-            {
-                saveBookingProgress(&partial);
+             if (partial.inProgress) {
+                saveBookingProgress(&partial); 
                 printf("Progress saved. Goodbye!\n");
-            }
-            else
-            {
+            } else {
                 printf("No booking in progress to save. Goodbye!\n");
             }
             exit(0);
         case 4:
-            // Remove the booking file if it exists
-            removeLastBooking();
             printf("Exiting without saving.\n");
-
-           // Remove partial booking file if it exists
             if (remove(PARTIAL_BOOKING_FILENAME) == 0) {
-                 printf("Unsaved progress cleared.\n");
+                printf("Unsaved progress cleared.\n");
             } else {
-              printf("No unsaved progress to clear.\n");
+                printf("No unsaved progress to clear.\n");
             }
              exit(0);
-            
         case 5:
             searchBookings();
             break;
