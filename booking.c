@@ -70,6 +70,13 @@ const int numCities = sizeof(indianCities) / sizeof(indianCities[0]);
 struct Routs routeSeatAvailability[MAX_ROUTES]; 
 int routeCount = 0;  // Keep track of unique routes
 
+void printCentered(const char* str, int width) {
+    int len = strlen(str);
+    int spaces = (width - len) / 2; 
+    if (spaces < 0) spaces = 0; // In case the string is longer than width
+    printf("%*s%s\n", spaces, "", str); // Print spaces and the string
+}
+
 void clearInputBuffer()
 {
     int c;
@@ -539,18 +546,27 @@ void addBooking() {
                 } else {
                     generateReferenceNumber(bookingReference, partial.booking.ticketID);
                     printf("\nBooking added successfully!\n");
-                    printf("\nReceipt:\n");
-                    printf(" Booking Reference: %s\n", bookingReference);
-                    printf(" Ticket ID: %d\n", partial.booking.ticketID);
-                    printf(" Name: %s\n", partial.booking.name);
-                    printf(" Current Location: %s\n", partial.booking.currentLocation);
-                    printf(" Destination: %s\n", partial.booking.destination);
-                    printf(" Category: %s\n", ticketCategories[categoryChoice - 1]);
-                    printf(" Seats: ");
+
+                    const int width = 90; 
+                    printf("\n");
+                    
+                    // Receipt
+                    printCentered("+----------------------------------------------+", 50);
+                    printCentered("|                   Receipt                    |", 50);
+                    printCentered("+----------------------------------------------+", 50);
+                    printf(" | Ticket ID: %-33d |\n", partial.booking.ticketID);
+                    printf(" | Name: %-38s |\n", partial.booking.name);
+                    printf(" | Current Location: %-26s |\n", partial.booking.currentLocation);
+                    printf(" | Destination: %-31s |\n", partial.booking.destination);
+                    printf(" | Number of Travelers: %-23d |\n", n);
+                    printf(" | Category: %-34s |\n", ticketCategories[partial.booking.category[0]]);
+                    printf("| Seats Booked: ");
                     for (int j = 0; j < n; j++) {
-                        printf("%d ", partial.booking.seats[j]);
+                         printf("%d ", partial.booking.seats[j]);
                     }
-                    printf("\n Price: Rs.%d\n", partial.booking.price);
+                    printf("%*s |\n", (width - strlen("| Seats Booked: ") - (n * 2) - 1), ""); // Calculate space to keep in line
+                    printf(" | Price: Rs. %-32d  |\n", partial.booking.price);
+                    printCentered("+----------------------------------------------+", 50);
                 }
                 fclose(file);
 
@@ -964,14 +980,16 @@ void PopularDestinations()
 
     fclose(file);
 
-    printf("\n--- Popular Destinations ---\n");
-    for (int i = 0; i < numCities; i++)
-    {
-        if (destinationCounts[i] > 0)
-        {
-            printf("%s: %d bookings\n", indianCities[i], destinationCounts[i]);
+    printf("\n+---------------------------------------------+\n");
+    printCentered("|            Popular Destinations             |", 45);
+    printf("+---------------------------------------------+\n");
+
+    for (int i = 0; i < numCities; i++) {
+        if (destinationCounts[i] > 0) {
+            printf("| %-31s: %d bookings |\n", indianCities[i], destinationCounts[i]);
         }
     }
+    printf("+---------------------------------------------+\n");
 }
 
 void RevenueStatistics()
@@ -992,19 +1010,28 @@ void RevenueStatistics()
     }
 
     fclose(file);
-    printf("\n--- Revenue Statistics ---\n");
-    printf("Total Revenue from Bookings: Rs. %d\n", totalRevenue);
+    printf("\n+---------------------------------------------+\n");
+    printCentered("|            Revenue Statistics               |", 45);
+    printf("+---------------------------------------------+\n");
+    printf("| Total Revenue from Bookings: Rs. %-10d |\n", totalRevenue);
+    printf("+---------------------------------------------+\n");
 }
 
 void generateReports() {
-    printf("\n--- Reports and Analytics ---\n");
+     printf("\n+---------------------------------------------+\n");
+    printCentered("|           Reports and Analytics             |", 45);
+    printf("+---------------------------------------------+\n");
+
     PopularDestinations();
     RevenueStatistics();
+
+    printf("+---------------------------------------------+\n");
 }
 
 
 int main()
 {
+     system("color 78");
     while(1){
         showMenu();
         handleInput(); 
@@ -1013,13 +1040,19 @@ int main()
 }
 
 void showMenu(){
-    printf("\nTicket Booking System\n");
-    printf("1. Add/Resume Booking\n");
-    printf("2. Display Bookings\n");
-    printf("3. Save Progress and Exit\n");
-    printf("4. Exit without Saving\n");
-    printf("5. Search Bookings\n");
-    printf("Enter your choice: ");
+    printf("\n");
+          printCentered("\033[30m+-----------------------------------------------+", 120);
+        printCentered("\033[30m|           Ticket Booking System               |", 120);
+        printCentered("\033[30m+-----------------------------------------------+", 120);
+        printCentered("\033[30m| 1. Add/Resume Booking                         |", 120);
+        printCentered("\033[30m| 2. Display Bookings                           |", 120);
+        printCentered("\033[30m| 3. Save Progress and Exit                     |", 120);
+        printCentered("\033[30m| 4. Exit without Saving                        |", 120);
+        printCentered("\033[30m| 5. Search Bookings                            |", 120);
+        printCentered("\033[30m| 6. Modify Booking                             |", 120);
+        printCentered("\033[30m| 7. Cancel Booking                             |", 120);
+        printCentered("\033[30m| 8. View Report                                |", 120);
+        printCentered("\033[30m+-----------------------------------------------+", 120);
 }
 
 void handleInput(){
