@@ -1020,8 +1020,10 @@ void showMenu(){
         printCentered("\033[30m| 6. Modify Booking                             |", 120);
         printCentered("\033[30m| 7. Cancel Booking                             |", 120);
         printCentered("\033[30m| 8. View Report                                |", 120);
+        printCentered("\033[30m| 9. Exit.                                      |", 120);
         printCentered("\033[30m+-----------------------------------------------+", 120);
 }
+
 
 void handleInput(){
     int choice;
@@ -1046,13 +1048,33 @@ void handleInput(){
             showMenu();
             break;
         case 3:
-             if (partial.inProgress) {
-                saveBookingProgress(&partial); 
-                printf("Progress saved. Goodbye!\n");
+            if (partial.inProgress) {
+                saveBookingProgress(&partial);
+                printf("Progress saved.\n");
+
+                int exitChoice;
+                do {
+                    printf("Do you want to exit? (1: Yes, 0: No): ");
+                    if (scanf("%d", &exitChoice) != 1 || (exitChoice != 0 && exitChoice != 1)) {
+                        printf("Invalid input. Please enter 1 for Yes or 0 for No.\n");
+                        clearInputBuffer();
+                        continue;
+                    }
+                    clearInputBuffer();
+                } while (exitChoice != 0 && exitChoice != 1);
+
+                if (exitChoice == 1) {
+                    printf("Goodbye!\n");
+                    exit(0);
+                } else {
+                    continue;
+                }
             } else {
                 printf("No booking in progress to save. Goodbye!\n");
+                exit(0);
             }
-            exit(0);
+            showMenu();
+            break;
         case 4:
             printf("Exiting without saving.\n");
             if (remove(PARTIAL_BOOKING_FILENAME) == 0) {
@@ -1060,7 +1082,27 @@ void handleInput(){
             } else {
                 printf("No unsaved progress to clear.\n");
             }
-             exit(0);
+
+            int exitChoice2;
+            do {
+                printf("Do you want to exit? (1: Yes, 0: No): ");
+                if (scanf("%d", &exitChoice2) != 1 || (exitChoice2 != 0 && exitChoice2 != 1)) {
+                    printf("Invalid input. Please enter 1 for Yes or 0 for No.\n");
+                    clearInputBuffer();
+                    continue;
+                }
+                clearInputBuffer();
+            } while (exitChoice2 != 0 && exitChoice2 != 1);
+
+            if (exitChoice2 == 1) {
+                printf("Goodbye!\n");
+                exit(0);
+            } else {
+                // If the user chooses not to exit, continue with the program
+                continue;
+
+            }
+            break;
         case 5:
             searchBookings();
             showMenu();
@@ -1073,10 +1115,13 @@ void handleInput(){
             cancelBooking();
             showMenu();
             break;
-         case 8:
+        case 8:
             generateReports();
             showMenu();
-            break;    
+            break;
+        case 9:
+            exit(0);
+            break;
         default:
             printf("Invalid choice. Please try again.\n");
         }
