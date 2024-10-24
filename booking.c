@@ -268,44 +268,6 @@ void generateReferenceNumber(char *refNumber, int ticketID)
     sprintf(refNumber, "REF-%d-%03d", ticketID, random);
 }
 
-int getPriceForCity(const char *currentCity, const char *destinationCity, int n, int categoryIndex) {
-    int current = -1, destination = -1;
-
-    for (int i = 0; i < numCities; i++) {
-        if (strcmp(currentCity, indianCities[i]) == 0) {
-            current = i;
-        }
-        if (strcmp(destinationCity, indianCities[i]) == 0) {
-            destination = i;
-        }
-    }
-
-    if (current != -1 && destination != -1) {   //Dynamic Pricing #30 by vasu
-        int basePrice = ticketPrices[current][categoryIndex] * n;
-        time_t currentTime;
-        time(&currentTime);
-        struct tm *timeInfo = localtime(&currentTime);
-
-        int hoursToDeparture = (23 - timeInfo->tm_hour);
-        //we increse 40% if booking within 6 hours of departure and 20% for 12 hours
-        float timeFactor = 1.0;
-        if (hoursToDeparture <= 6) {
-            timeFactor = 1.4;
-        } else if (hoursToDeparture <= 12) {
-            timeFactor = 1.2;
-        }
-
-        //based on demand currently it is random
-        srand(time(NULL));
-        float demandFactor = (rand() % 71 + 80) / 100.0; 
-
-        int dynamicPrice = (int)(basePrice * timeFactor * demandFactor);
-        return dynamicPrice;
-    }
-
-    return -1; 
-}
-
 int unique_id(){       //Automatically Generate Unique, Non-Repeating Ticket IDs #16 by Vasu
     static int counter = 0;
     time_t now = time(NULL);
@@ -504,10 +466,7 @@ void addBooking() {
             bookSeatRoute(partial.booking.currentLocation, partial.booking.destination, seatNum); // Mark seat as booked
         }
 
-        partial.booking.price = getPriceForCity(partial.booking.currentLocation,
-                                                 partial.booking.destination,
-                                                 n,
-                                                 categoryChoice - 1);
+        partial.booking.price = ticketPrices[currentChoice - 1][categoryChoice - 1]; // Updated by Meet
 
         // Display summary before finalizing booking
         printBookingSummary(&partial, n); // Improved summary display
@@ -881,11 +840,20 @@ void modifyBooking() {
 
             } while (1);
 
-            // Recalculate price based on new details
-            booking.price = getPriceForCity(booking.currentLocation, booking.destination, n, categoryChoice - 1);
+            int currentLocationIndex = -1, destinationIndex = -1;
+            for (int i = 0; i < numCities; i++) {
+                if (strcmp(booking.currentLocation, indianCities[i]) == 0) {
+                    currentLocationIndex = i;
+                }
+                if (strcmp(booking.destination, indianCities[i]) == 0) {
+                    destinationIndex = i;
+                }
+            }
 
-            if (booking.price < 0) {
-                printf("Error: Unable to calculate the price based on provided locations and category.\n");
+            if (currentLocationIndex != -1 && destinationIndex != -1) {
+                booking.price = ticketPrices[currentLocationIndex][categoryChoice - 1];
+            } else {
+                printf("Error: Unable to find current location or destination in the cities list.\n");
                 fclose(file);
                 fclose(tempFile);
                 return;
