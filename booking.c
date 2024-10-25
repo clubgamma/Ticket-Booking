@@ -45,6 +45,15 @@ struct RouteSeatAvailability {
     bool seatAvailability[MAX_SEATS]; // Array to track availability for this specific route
 };
 
+struct Calendar {
+    char date[11];
+    char currentLocation[MAX_NAME_LENGTH];
+    char destination[MAX_NAME_LENGTH];
+    int standardPrice;
+    int vipPrice;
+    bool available;
+};
+
 const char *indianCities[] = {
     "Mumbai", "Delhi", "Bangalore", "Hyderabad", "Chennai",
     "Kolkata", "Jaipur", "Ahmedabad", "Pune", "Lucknow"};
@@ -77,6 +86,21 @@ void printCentered(const char* str, int width) {
     if (spaces < 0) spaces = 0; // In case the string is longer than width
     printf("%*s%s\n", spaces, "", str); // Print spaces and the string
 }
+
+struct Calendar tickets[MAX_ROUTES];
+
+void Initilize_Calendar() {
+    int dayCount = 30;
+   for (int i = 0; i < dayCount; i++) {
+        snprintf(tickets[i].date, sizeof(tickets[i].date), "2024-10-%02d", i + 1); // Dates from Oct 01 to Oct 30
+        strcpy(tickets[i].currentLocation, indianCities[i % (sizeof(indianCities) / sizeof(indianCities[0]))]);
+        strcpy(tickets[i].destination, indianCities[(i + 1) % (sizeof(indianCities) / sizeof(indianCities[0]))]);
+        tickets[i].standardPrice = ticketPrices[i % (sizeof(ticketPrices) / sizeof(ticketPrices[0]))][0];
+        tickets[i].vipPrice = ticketPrices[i % (sizeof(ticketPrices) / sizeof(ticketPrices[0]))][1];
+        tickets[i].available = (i % 2 == 0); // Alternate availability for demonstration
+    }
+}
+
 
 void clearInputBuffer()
 {
@@ -1082,6 +1106,24 @@ void generateReports() {
     printf("+---------------------------------------------+\n");
 }
 
+void displayCalendar() {
+    printf("\n +----------------------------------------------------------------------------------------------+\n");
+    printf(" | Date       | Current Location | Destination | Standard Price | VIP Price | Availability      |\n");
+    printf(" +----------------------------------------------------------------------------------------------+\n");
+
+    for (int i = 0; i < 30; i++) {
+        printf(" | %-10s | %-15s | %-11s | Rs. %-13d | Rs. %-8d | %-12s |\n",
+               tickets[i].date,
+               tickets[i].currentLocation,
+               tickets[i].destination,
+               tickets[i].standardPrice,
+               tickets[i].vipPrice,
+               tickets[i].available ? "Available" : "Sold Out");
+    }
+
+    printf(" +----------------------------------------------------------------------------------------------+\n");
+}
+
 
 int main()
 {
@@ -1098,15 +1140,16 @@ void showMenu(){
           printCentered("\033[30m+-----------------------------------------------+", 120);
         printCentered("\033[30m|           Ticket Booking System               |", 120);
         printCentered("\033[30m+-----------------------------------------------+", 120);
-        printCentered("\033[30m| 1. Add/Resume Booking                         |", 120);
-        printCentered("\033[30m| 2. Display Bookings                           |", 120);
-        printCentered("\033[30m| 3. Save Progress and Exit                     |", 120);
-        printCentered("\033[30m| 4. Exit without Saving                        |", 120);
-        printCentered("\033[30m| 5. Search Bookings                            |", 120);
-        printCentered("\033[30m| 6. Modify Booking                             |", 120);
-        printCentered("\033[30m| 7. Cancel Booking                             |", 120);
-        printCentered("\033[30m| 8. View Report                                |", 120);
-        printCentered("\033[30m| 9. Exit.                                      |", 120);
+        printCentered("\033[30m| 1. Show Schedule                              |", 120);
+        printCentered("\033[30m| 2. Add/Resume Booking                         |", 120);
+        printCentered("\033[30m| 3. Display Bookings                           |", 120);
+        printCentered("\033[30m| 4. Save Progress and Exit                     |", 120);
+        printCentered("\033[30m| 5. Exit without Saving                        |", 120);
+        printCentered("\033[30m| 6. Search Bookings                            |", 120);
+        printCentered("\033[30m| 7. Modify Booking                             |", 120);
+        printCentered("\033[30m| 8. Cancel Booking                             |", 120);
+        printCentered("\033[30m| 9. View Report                                |", 120);
+        printCentered("\033[30m| 10. Exit.                                      |", 120);
         printCentered("\033[30m+-----------------------------------------------+", 120);
 }
 
@@ -1126,14 +1169,18 @@ void handleInput(){
         switch (choice)
         {
         case 1:
+           Initilize_Calendar();
+           displayCalendar();
+           break;
+        case 2:
             addBooking();
             showMenu();
             break;
-        case 2:
+        case 3:
             displayBookings();
             showMenu();
             break;
-        case 3:
+        case 4:
             if (partial.inProgress) {
                 saveBookingProgress(&partial);
                 printf("Progress saved.\n");
@@ -1161,7 +1208,7 @@ void handleInput(){
             }
             showMenu();
             break;
-        case 4:
+        case 5:
             printf("Exiting without saving.\n");
             if (remove(PARTIAL_BOOKING_FILENAME) == 0) {
                 printf("Unsaved progress cleared.\n");
@@ -1189,23 +1236,23 @@ void handleInput(){
 
             }
             break;
-        case 5:
+        case 6:
             searchBookings();
             showMenu();
             break;
-        case 6:
+        case 7:
             modifyBooking();
             showMenu();
             break;
-        case 7:
+        case 8:
             cancelBooking();
             showMenu();
             break;
-        case 8:
+        case 9:
             generateReports();
             showMenu();
             break;
-        case 9:
+        case 10:
             exit(0);
             break;
         default:
