@@ -1065,7 +1065,7 @@ int main()
      system("color 78");
     while(1){
         showMenu();
-        handleInput(); 
+        TransportMode();
     }
     return 0;
 }
@@ -1088,6 +1088,29 @@ void showMenu(){
         printCentered("\033[30m+-----------------------------------------------+", 120);
 }
 
+void TransportMode() {
+    int Choice;
+
+    printf("\nSelect mode of transport:\n");
+    printf("1. Bus\n");
+    printf("2. Train\n");
+    printf("Enter your choice: ");
+
+    if (scanf("%d", &Choice) != 1 || (Choice < 1 || Choice > 2)) {
+        printf("Invalid choice. Please choose 1 for Bus or 2 for Train.\n");
+        clearInputBuffer(); 
+        return;
+    }
+    clearInputBuffer(); 
+
+    printf("You selected: %s\n", Choice == 1 ? "Bus" : "Train");
+
+    if (Choice == 1) {
+        handleInput(); 
+    } else {
+        handleInput(); 
+    }
+}
 
 void handleInput(){
     int choice;
