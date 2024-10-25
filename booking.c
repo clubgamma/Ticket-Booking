@@ -83,6 +83,44 @@ int ticketPrices[][2] = {
     {900, 1900}   // Lucknow
 };
 
+int busPrices[][2] = {
+    {800, 1500},
+    {700, 1200},
+    {600, 1100},
+    {550, 1000},
+    {600, 1100},
+    {650, 1200},
+    {700, 1300},
+    {650, 1250},
+    {800, 1400},
+    {500, 1000}
+};
+
+int Transport_Choice;
+
+void TransportMode() {
+
+    printf("\nSelect mode of transport:\n");
+    printf("1. Bus\n");
+    printf("2. Train\n");
+    printf("Enter your choice: ");
+
+    if (scanf("%d", &Transport_Choice) != 1 || (Transport_Choice < 1 || Transport_Choice > 2)) {
+        printf("Invalid choice. Please choose 1 for Bus or 2 for Train.\n");
+        clearInputBuffer();
+        return;
+    }
+    clearInputBuffer();
+
+    printf("You selected: %s\n", Transport_Choice == 1 ? "Bus" : "Train");
+
+    if (Transport_Choice == 1) {
+        handleInput();
+    } else {
+        handleInput();
+    }
+}
+
 void showMenu();
 void handleInput();
 const int numCities = sizeof(indianCities) / sizeof(indianCities[0]);
@@ -577,7 +615,7 @@ void addBooking()
             }
             break;
         } while (1);
-
+     
         // Initialize booked seats to 0
         for (int i = 0; i < MAX_SEATS; i++)
         {
@@ -603,14 +641,25 @@ void addBooking()
             bookSeatRoute(partial.booking.currentLocation, partial.booking.destination, seatNum); // Mark seat as booked
         }
 
-        if (partial.booking.returnTicket)
-        {
-            partial.booking.price = (ticketPrices[currentChoice - 1][categoryChoice - 1]) * 2;
+        if (Transport_Choice == 1) { 
+            
+             if (partial.booking.returnTicket) {
+                partial.booking.price = (busPrices[currentChoice - 1][categoryChoice - 1]) * 2; 
+            } 
+            else {
+              partial.booking.price = busPrices[currentChoice - 1][categoryChoice - 1]; 
+            }
+            
+       } else { 
+            
+             if (partial.booking.returnTicket) {
+                 partial.booking.price = (ticketPrices[currentChoice - 1][categoryChoice - 1]) * 2;
+           } 
+             else {
+                partial.booking.price = ticketPrices[currentChoice - 1][categoryChoice - 1];
+           }
         }
-        else
-        {
-            partial.booking.price = ticketPrices[currentChoice - 1][categoryChoice - 1];
-        }
+
         clearInputBuffer();
         do
         {
@@ -661,6 +710,8 @@ void addBooking()
                 printf("Invalid input. Please enter 'yes' or 'no'.\n");
             }
         } while (1);
+
+         
         // Display summary before finalizing booking
         printBookingSummary(&partial, n); // Improved summary display
 
@@ -1354,7 +1405,7 @@ int main()
     while (1)
     {
         showMenu();
-        handleInput();
+        TransportMode();
     }
     return 0;
 }
@@ -1486,7 +1537,6 @@ void handleInput()
                 printf("No unsaved progress to clear.\n");
             }
 
-            int exitChoice2;
             do
             {
                 printf("Do you want to exit? (1: Yes, 0: No): ");
