@@ -44,6 +44,13 @@ struct RouteSeatAvailability {
     bool seatAvailability[MAX_SEATS]; // Array to track availability for this specific route
 };
 
+struct Feedback {
+    int ticketID;
+    char name[MAX_NAME_LENGTH];
+    int rating; // Rating out of 5
+    char comments[200];
+};
+
 const char *indianCities[] = {
     "Mumbai", "Delhi", "Bangalore", "Hyderabad", "Chennai",
     "Kolkata", "Jaipur", "Ahmedabad", "Pune", "Lucknow"};
@@ -504,6 +511,7 @@ void addBooking() {
                     printf("Error: Failed to write booking data. Please try again.\n");
                 } else {
                     generateReferenceNumber(bookingReference, partial.booking.ticketID);
+                    recordFeedback(partial.booking.ticketID, partial.booking.name);
                     printf("\nBooking added successfully!\n");
 
                     const int width = 90; 
@@ -996,6 +1004,61 @@ void generateReports() {
     printf("+---------------------------------------------+\n");
 }
 
+void recordFeedback(int ticketID, const char* name) {
+    struct Feedback feedback;
+    feedback.ticketID = ticketID;
+    strncpy(feedback.name, name, MAX_NAME_LENGTH);
+
+    do {
+        printf("Rate your experience (1-5): ");
+        if (scanf("%d", &feedback.rating) != 1 || feedback.rating < 1 || feedback.rating > 5) {
+            printf("Invalid input. Please enter a number between 1 and 5.\n");
+            clearInputBuffer();
+        } else {
+            break; // valid input
+        }
+    } while (1);
+
+    clearInputBuffer(); 
+    printf("Enter Your Feedback (max 200 characters): ");
+    fgets(feedback.comments, sizeof(feedback.comments), stdin);
+    feedback.comments[strcspn(feedback.comments, "\n")] = 0; // Remove newline
+
+    FILE *file = fopen("feedbacks.dat", "ab");
+    if (file == NULL) {
+        printf("Error saving feedback. Please try again.\n");
+        return;
+    }
+    fwrite(&feedback, sizeof(struct Feedback), 1, file);
+    fclose(file);
+    printf("Thank you for your feedback!\n");
+}
+
+void displayFeedbacks() {
+    struct Feedback feedback;
+    FILE *file = fopen("feedbacks.dat", "rb");
+
+    if (file == NULL) {
+        printf("+-----------------------------------------------+\n");
+        printf("| No feedbacks available.                        |\n");
+        printf("+-----------------------------------------------+\n");
+        return;
+    }
+
+    printf("\nFeedbacks:\n");
+    printf("+----------------------------------------------------------------------+\n");
+    printf("| Ticket ID | Name                | Rating |      Comments             |\n");
+    printf("+----------------------------------------------------------------------+\n");
+
+    while (fread(&feedback, sizeof(struct Feedback), 1, file) == 1) {
+        printf("| %-10d | %-18s | %-6d | %s\n",
+               feedback.ticketID, feedback.name, feedback.rating, feedback.comments);
+    }
+    printf("+----------------------------------------------------------------------+\n");
+
+    fclose(file);
+}
+
 
 int main()
 {
@@ -1020,7 +1083,8 @@ void showMenu(){
         printCentered("\033[30m| 6. Modify Booking                             |", 120);
         printCentered("\033[30m| 7. Cancel Booking                             |", 120);
         printCentered("\033[30m| 8. View Report                                |", 120);
-        printCentered("\033[30m| 9. Exit.                                      |", 120);
+        printCentered("\033[30m| 9. View Feedbacks                             |", 120);
+        printCentered("\033[30m| 10. Exit.                                     |", 120);
         printCentered("\033[30m+-----------------------------------------------+", 120);
 }
 
@@ -1120,6 +1184,10 @@ void handleInput(){
             showMenu();
             break;
         case 9:
+            displayFeedbacks();
+            showMenu();
+            break;
+        case 10:
             exit(0);
             break;
         default:
