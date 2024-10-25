@@ -1082,6 +1082,7 @@ void generateReports() {
     printf("+---------------------------------------------+\n");
 }
 
+
 void FAQ()
 {
     const char *questions[] = {
@@ -1140,6 +1141,8 @@ void FAQ()
         }
     } while (1);
 }
+
+
 
 int main()
 {
