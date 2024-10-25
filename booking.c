@@ -1537,7 +1537,6 @@ void handleInput()
                 printf("No unsaved progress to clear.\n");
             }
 
-            int exitChoice2;
             do
             {
                 printf("Do you want to exit? (1: Yes, 0: No): ");
