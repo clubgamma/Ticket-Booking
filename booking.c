@@ -47,10 +47,19 @@ struct RouteSeatAvailability
     bool seatAvailability[MAX_SEATS]; // Array to track availability for this specific route
 };
 
+
 struct PromoCode
 {
     char code[20];
     int discount;
+};
+struct Calendar {
+    char date[11];
+    char currentLocation[MAX_NAME_LENGTH];
+    char destination[MAX_NAME_LENGTH];
+    int standardPrice;
+    int vipPrice;
+    bool available;
 };
 
 const char *indianCities[] = {
@@ -88,6 +97,22 @@ void printCentered(const char *str, int width)
         spaces = 0;                     // In case the string is longer than width
     printf("%*s%s\n", spaces, "", str); // Print spaces and the string
 }
+
+
+struct Calendar tickets[MAX_ROUTES];
+
+void Initilize_Calendar() {
+    int dayCount = 30;
+   for (int i = 0; i < dayCount; i++) {
+        snprintf(tickets[i].date, sizeof(tickets[i].date), "2024-10-%02d", i + 1); // Dates from Oct 01 to Oct 30
+        strcpy(tickets[i].currentLocation, indianCities[i % (sizeof(indianCities) / sizeof(indianCities[0]))]);
+        strcpy(tickets[i].destination, indianCities[(i + 1) % (sizeof(indianCities) / sizeof(indianCities[0]))]);
+        tickets[i].standardPrice = ticketPrices[i % (sizeof(ticketPrices) / sizeof(ticketPrices[0]))][0];
+        tickets[i].vipPrice = ticketPrices[i % (sizeof(ticketPrices) / sizeof(ticketPrices[0]))][1];
+        tickets[i].available = (i % 2 == 0); // Alternate availability for demonstration
+    }
+}
+
 
 void clearInputBuffer()
 {
@@ -1304,6 +1329,25 @@ void FAQ()
     } while (1);
 }
 
+
+void displayCalendar() {
+    printf("\n +----------------------------------------------------------------------------------------------+\n");
+    printf(" | Date       | Current Location | Destination | Standard Price | VIP Price | Availability      |\n");
+    printf(" +----------------------------------------------------------------------------------------------+\n");
+
+    for (int i = 0; i < 30; i++) {
+        printf(" | %-10s | %-15s | %-11s | Rs. %-13d | Rs. %-8d | %-12s |\n",
+               tickets[i].date,
+               tickets[i].currentLocation,
+               tickets[i].destination,
+               tickets[i].standardPrice,
+               tickets[i].vipPrice,
+               tickets[i].available ? "Available" : "Sold Out");
+    }
+
+    printf(" +----------------------------------------------------------------------------------------------+\n");
+}
+
 int main()
 {
     system("color 78");
@@ -1332,6 +1376,7 @@ void showMenu()
     printCentered("\033[30m| 9. Display FAQ.                               |", 120);
     printCentered("\033[30m| 10. Exit.                                     |", 120);
     printCentered("\033[30m+-----------------------------------------------+", 120);
+
 }
 
 void handleInput()
@@ -1352,11 +1397,11 @@ void handleInput()
         switch (choice)
         {
         case 1:
-            addBooking();
-            showMenu();
-            break;
+           Initilize_Calendar();
+           displayCalendar();
+           break;
         case 2:
-            displayBookings();
+            addBooking();
             showMenu();
             break;
         case 3:
@@ -1431,26 +1476,61 @@ void handleInput()
             }
             break;
         case 5:
+            printf("Exiting without saving.\n");
+            if (remove(PARTIAL_BOOKING_FILENAME) == 0)
+            {
+                printf("Unsaved progress cleared.\n");
+            }
+            else
+            {
+                printf("No unsaved progress to clear.\n");
+            }
+
+            int exitChoice2;
+            do
+            {
+                printf("Do you want to exit? (1: Yes, 0: No): ");
+                if (scanf("%d", &exitChoice2) != 1 || (exitChoice2 != 0 && exitChoice2 != 1))
+                {
+                    printf("Invalid input. Please enter 1 for Yes or 0 for No.\n");
+                    clearInputBuffer();
+                    continue;
+                }
+                clearInputBuffer();
+            } while (exitChoice2 != 0 && exitChoice2 != 1);
+
+            if (exitChoice2 == 1)
+            {
+                printf("Goodbye!\n");
+                exit(0);
+            }
+            else
+            {
+                // If the user chooses not to exit, continue with the program
+                continue;
+            }
+            break;
+        case 6:
             searchBookings();
             showMenu();
             break;
-        case 6:
+        case 7:
             modifyBooking();
             showMenu();
             break;
-        case 7:
+        case 8:
             cancelBooking();
             showMenu();
             break;
-        case 8:
+        case 9:
             generateReports();
             showMenu();
             break;
-        case 9:
+        case 10:
             FAQ();
             showMenu();
             break;
-        case 10:
+        case 11:
             exit(0);
             break;
         default:
