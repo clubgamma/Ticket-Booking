@@ -307,8 +307,10 @@ void printBookingSummary(const struct PartialBooking *partial, int n) {
 
 void Discount(struct Booking *booking, const char *promoCode) {
     if (strcmp(promoCode, "meet") == 0) {
-        booking->discount = 10; 
-        booking->price -= booking->discount; // Reduce the price
+        int discount = 10;
+        booking->discount = discount;
+        booking->price -= (booking->price * booking->discount / 100);
+        printf("You got %d%% discount...\n",discount);
     } else {
         booking->discount = 0; 
     }
@@ -515,7 +517,7 @@ void addBooking() {
                 }
 
                 char promoCode[20];
-                printf("Enter promotional code (if any): ");
+                printf("Enter promotional code (if any) OR Press Enter: ");
                 fgets(promoCode, sizeof(promoCode), stdin);
                 promoCode[strcspn(promoCode, "\n")] = 0; 
 
