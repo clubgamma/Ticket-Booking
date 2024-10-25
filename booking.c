@@ -8,7 +8,7 @@
 #define MAX_NAME_LENGTH 50
 #define MAX_DESTINATION_LENGTH 50
 #define MAX_SEATS 50
-#define MAX_ROUTES 100 
+#define MAX_ROUTES 100
 #define FILENAME "bookings.dat"
 #define PARTIAL_BOOKING_FILENAME "partial_booking.dat"
 #define PROGRESS_FILENAME "booking.det"
@@ -33,18 +33,26 @@ struct PartialBooking
     int stage; // 0: ticketID, 1: name, 2: destination, 3: price
 };
 
-struct Routs {
+struct Routs
+{
     char currentLocation[MAX_DESTINATION_LENGTH];
     char destination[MAX_DESTINATION_LENGTH];
     bool seatAvailability[MAX_SEATS]; // Array to track availability for this specific route
 };
 
-struct RouteSeatAvailability {
+struct RouteSeatAvailability
+{
     char currentLocation[MAX_DESTINATION_LENGTH];
     char destination[MAX_DESTINATION_LENGTH];
     bool seatAvailability[MAX_SEATS]; // Array to track availability for this specific route
 };
 
+
+struct PromoCode
+{
+    char code[20];
+    int discount;
+};
 struct Calendar {
     char date[11];
     char currentLocation[MAX_NAME_LENGTH];
@@ -58,10 +66,11 @@ const char *indianCities[] = {
     "Mumbai", "Delhi", "Bangalore", "Hyderabad", "Chennai",
     "Kolkata", "Jaipur", "Ahmedabad", "Pune", "Lucknow"};
 
-//int ticketPrices[] = {1500, 1300, 1200, 1100, 1150, 1250, 1400, 1350, 1600, 900};
+// int ticketPrices[] = {1500, 1300, 1200, 1100, 1150, 1250, 1400, 1350, 1600, 900};
 
 const char *ticketCategories[] = {"Standard", "VIP"}; // Ticket categories
-int ticketPrices[][2] = { // Prices for each category
+int ticketPrices[][2] = {
+    // Prices for each category
     {1500, 2500}, // Standard and VIP prices for Mumbai
     {1300, 2300}, // Delhi
     {1200, 2200}, // Bangalore
@@ -77,13 +86,15 @@ int ticketPrices[][2] = { // Prices for each category
 void showMenu();
 void handleInput();
 const int numCities = sizeof(indianCities) / sizeof(indianCities[0]);
-struct Routs routeSeatAvailability[MAX_ROUTES]; 
-int routeCount = 0;  // Keep track of unique routes
+struct Routs routeSeatAvailability[MAX_ROUTES];
+int routeCount = 0; // Keep track of unique routes
 
-void printCentered(const char* str, int width) {
+void printCentered(const char *str, int width)
+{
     int len = strlen(str);
-    int spaces = (width - len) / 2; 
-    if (spaces < 0) spaces = 0; // In case the string is longer than width
+    int spaces = (width - len) / 2;
+    if (spaces < 0)
+        spaces = 0;                     // In case the string is longer than width
     printf("%*s%s\n", spaces, "", str); // Print spaces and the string
 }
 
@@ -110,22 +121,30 @@ void clearInputBuffer()
         ;
 }
 
-void initializeSeats() {
-    for (int i = 0; i < MAX_ROUTES; i++) {
-        for (int j = 0; j < MAX_SEATS; j++) {
+void initializeSeats()
+{
+    for (int i = 0; i < MAX_ROUTES; i++)
+    {
+        for (int j = 0; j < MAX_SEATS; j++)
+        {
             routeSeatAvailability[i].seatAvailability[j] = true; // Initialize all seats to available
         }
     }
     struct Booking booking;
     FILE *file = fopen(FILENAME, "rb");
 
-    if (file != NULL) {
-        while (fread(&booking, sizeof(struct Booking), 1, file) == 1) {
-            for (int j = 0; j < MAX_SEATS && booking.seats[j] != 0; j++) {
+    if (file != NULL)
+    {
+        while (fread(&booking, sizeof(struct Booking), 1, file) == 1)
+        {
+            for (int j = 0; j < MAX_SEATS && booking.seats[j] != 0; j++)
+            {
                 // Find the route and mark the seat as booked
-                for (int r = 0; r < routeCount; r++) {
+                for (int r = 0; r < routeCount; r++)
+                {
                     if (strcmp(routeSeatAvailability[r].currentLocation, booking.currentLocation) == 0 &&
-                        strcmp(routeSeatAvailability[r].destination, booking.destination) == 0) {
+                        strcmp(routeSeatAvailability[r].destination, booking.destination) == 0)
+                    {
                         routeSeatAvailability[r].seatAvailability[booking.seats[j] - 1] = false;
                         break; // Break to prevent unnecessary looping
                     }
@@ -136,70 +155,89 @@ void initializeSeats() {
     }
 }
 
-void addRoute(const char* currentLocation, const char* destination) {
+void addRoute(const char *currentLocation, const char *destination)
+{
     // Initialize a new route if it doesn't exist
-    for (int i = 0; i < routeCount; i++) {
+    for (int i = 0; i < routeCount; i++)
+    {
         if (strcmp(routeSeatAvailability[i].currentLocation, currentLocation) == 0 &&
-            strcmp(routeSeatAvailability[i].destination, destination) == 0) {
+            strcmp(routeSeatAvailability[i].destination, destination) == 0)
+        {
             return; // Route already exists
         }
     }
     // If route does not exist, initialize it
     strcpy(routeSeatAvailability[routeCount].currentLocation, currentLocation);
     strcpy(routeSeatAvailability[routeCount].destination, destination);
-    for (int i = 0; i < MAX_SEATS; i++) {
+    for (int i = 0; i < MAX_SEATS; i++)
+    {
         routeSeatAvailability[routeCount].seatAvailability[i] = true; // Set all seats to available
     }
     routeCount++;
 }
 
-bool isSeatAvailableForRoute(const char* currentCity, const char* destinationCity, int seatNum) {
-    for (int i = 0; i < routeCount; i++) {
+bool isSeatAvailableForRoute(const char *currentCity, const char *destinationCity, int seatNum)
+{
+    for (int i = 0; i < routeCount; i++)
+    {
         if (strcmp(routeSeatAvailability[i].currentLocation, currentCity) == 0 &&
-            strcmp(routeSeatAvailability[i].destination, destinationCity) == 0) {
+            strcmp(routeSeatAvailability[i].destination, destinationCity) == 0)
+        {
             return routeSeatAvailability[i].seatAvailability[seatNum - 1]; // Checking availability for specific route
         }
     }
     return false; // If route is not found, return false
 }
 
-void bookSeatRoute(const char* currentCity, const char* destinationCity, int seatNum) {
-    for (int i = 0; i < routeCount; i++) {
+void bookSeatRoute(const char *currentCity, const char *destinationCity, int seatNum)
+{
+    for (int i = 0; i < routeCount; i++)
+    {
         if (strcmp(routeSeatAvailability[i].currentLocation, currentCity) == 0 &&
-            strcmp(routeSeatAvailability[i].destination, destinationCity) == 0) {
+            strcmp(routeSeatAvailability[i].destination, destinationCity) == 0)
+        {
             routeSeatAvailability[i].seatAvailability[seatNum - 1] = false; // Mark the seat as booked
-            return; // Break once you've found the route
+            return;                                                         // Break once you've found the route
         }
     }
 }
 
-void freeSeatRoute(const char* currentCity, const char* destinationCity, int seatNum) {
-    for (int i = 0; i < routeCount; i++) {
+void freeSeatRoute(const char *currentCity, const char *destinationCity, int seatNum)
+{
+    for (int i = 0; i < routeCount; i++)
+    {
         if (strcmp(routeSeatAvailability[i].currentLocation, currentCity) == 0 &&
-            strcmp(routeSeatAvailability[i].destination, destinationCity) == 0) {
+            strcmp(routeSeatAvailability[i].destination, destinationCity) == 0)
+        {
             routeSeatAvailability[i].seatAvailability[seatNum - 1] = true; // Mark the seat as available again
-            return; // Exit once you've freed the seat
+            return;                                                        // Exit once you've freed the seat
         }
     }
 }
 
-void displayAvailableSeats(const char* currentCity, const char* destinationCity) {
+void displayAvailableSeats(const char *currentCity, const char *destinationCity)
+{
     printf("\n +-------------------------------------------------------------------------------------------------------------------+\n");
     printf(" |    Available Seats for %s to %s:  | \n", currentCity, destinationCity);
     printf(" +-------------------------------------------------------------------------------------------------------------------+\n");
 
-    for (int i = 0; i < routeCount; i++) {
+    for (int i = 0; i < routeCount; i++)
+    {
         if (strcmp(routeSeatAvailability[i].currentLocation, currentCity) == 0 &&
-            strcmp(routeSeatAvailability[i].destination, destinationCity) == 0) {
+            strcmp(routeSeatAvailability[i].destination, destinationCity) == 0)
+        {
             printf(" | ");
             bool foundSeat = false;
-            for (int j = 0; j < MAX_SEATS; j++) {
-                if (routeSeatAvailability[i].seatAvailability[j]) {
+            for (int j = 0; j < MAX_SEATS; j++)
+            {
+                if (routeSeatAvailability[i].seatAvailability[j])
+                {
                     printf("%d ", (j + 1)); // 1-indexed seat numbers
                     foundSeat = true;
                 }
             }
-            if (!foundSeat) {
+            if (!foundSeat)
+            {
                 printf("No available seats.");
             }
             printf("\n +-------------------------------------------------------------------------------------------------------------------+\n");
@@ -208,20 +246,24 @@ void displayAvailableSeats(const char* currentCity, const char* destinationCity)
     }
 }
 
-
 bool isValidName(const char *name)
 {
-    if (isspace(name[0])) {
+    if (isspace(name[0]))
+    {
         return false;
     }
-    for (const char *p = name; *p; p++) {
-        if (*p != ' ' && !isalpha(*p)) {
+    for (const char *p = name; *p; p++)
+    {
+        if (*p != ' ' && !isalpha(*p))
+        {
             return false;
         }
     }
     // Check if name contains at least one non-space character
-    for (const char *p = name; *p; p++) {
-        if (*p != ' ') {
+    for (const char *p = name; *p; p++)
+    {
+        if (*p != ' ')
+        {
             return true;
         }
     }
@@ -294,13 +336,15 @@ void generateReferenceNumber(char *refNumber, int ticketID)
     sprintf(refNumber, "REF-%d-%03d", ticketID, random);
 }
 
-int unique_id(){       //Automatically Generate Unique, Non-Repeating Ticket IDs #16 by Vasu
+int unique_id()
+{ // Automatically Generate Unique, Non-Repeating Ticket IDs #16 by Vasu
     static int counter = 0;
     time_t now = time(NULL);
     return ((int)(now % 1234) | counter++);
 }
 
-void printBookingSummary(const struct PartialBooking *partial, int n) {
+void printBookingSummary(const struct PartialBooking *partial, int n)
+{
     printf("\n +----------------------------------------------+\n");
     printf(" |               Booking Summary                |\n");
     printf(" +----------------------------------------------+\n");
@@ -312,7 +356,8 @@ void printBookingSummary(const struct PartialBooking *partial, int n) {
     printf(" | Category: %s                             |\n", ticketCategories[partial->booking.category[0]]);
 
     printf(" | Seats Booked: ");
-    for (int j = 0; j < n; j++) {
+    for (int j = 0; j < n; j++)
+    {
         printf("%d ", partial->booking.seats[j]);
     }
 
@@ -394,7 +439,7 @@ void addBooking()
     {
 
         int currentChoice;
-        char returnChoice[4];      //return ticket implementation
+        char returnChoice[4]; // return ticket implementation
         do
         {
             printf("Do you want return ticket(yes or no) : ");
@@ -558,12 +603,64 @@ void addBooking()
             bookSeatRoute(partial.booking.currentLocation, partial.booking.destination, seatNum); // Mark seat as booked
         }
 
-        if(partial.booking.returnTicket){
-            partial.booking.price = (ticketPrices[currentChoice - 1][categoryChoice - 1])*2;
-        }else{
+        if (partial.booking.returnTicket)
+        {
+            partial.booking.price = (ticketPrices[currentChoice - 1][categoryChoice - 1]) * 2;
+        }
+        else
+        {
             partial.booking.price = ticketPrices[currentChoice - 1][categoryChoice - 1];
         }
+        clearInputBuffer();
+        do
+        {
+            char promoChoice[4];
+            char enteredCode[20];
+            printf("Do you want to add Promo Code(yes or no) : ");
+            if (fgets(promoChoice, sizeof(promoChoice), stdin) == NULL)
+            {
+                printf("Error: Failed to read input. Please try again.\n");
+                continue;
+            }
 
+            // Remove newline character that fgets adds
+            promoChoice[strcspn(promoChoice, "\n")] = '\0';
+
+            struct PromoCode promoCodes[] = {{"CLUBGAMMA", 20}, {"CHARUSAT", 15}, {"HECTOBERFEST", 10}};
+            int numCodes = sizeof(promoCodes) / sizeof(promoCodes[0]);
+            int promoApplied = 0;
+            if (strcmp(promoChoice, "yes") == 0)
+            {
+                printf("Enter promotional code: ");
+                scanf("%s", enteredCode);
+                for (int i = 0; i < numCodes; i++)
+                {
+                    if (strcmp(enteredCode, promoCodes[i].code) == 0)
+                    {
+                        int discountAmount = partial.booking.price * (promoCodes[i].discount / 100.0);
+                        partial.booking.price -= discountAmount;
+                        printf("Promotional code applied! Discount: %d%%\n", promoCodes[i].discount);
+                        printf("New price after discount: %d\n", partial.booking.price);
+                        promoApplied = 1;
+                        break;
+                    }
+                }
+                if (!promoApplied)
+                {
+                    printf("Invalid promotional code.\n");
+                    continue;
+                }
+                break;
+            }
+            else if (strcmp(promoChoice, "no") == 0)
+            {
+                break;
+            }
+            else
+            {
+                printf("Invalid input. Please enter 'yes' or 'no'.\n");
+            }
+        } while (1);
         // Display summary before finalizing booking
         printBookingSummary(&partial, n); // Improved summary display
 
@@ -660,12 +757,13 @@ void addBooking()
     }
 }
 
-
-void displayBookings() {
+void displayBookings()
+{
     struct Booking booking;
     FILE *file = fopen(FILENAME, "rb");
 
-    if (file == NULL) {
+    if (file == NULL)
+    {
         printf("No bookings found or error opening file.\n");
         return;
     }
@@ -676,12 +774,15 @@ void displayBookings() {
     printf(" +----------------------------------------------------------------------------------------------+\n");
 
     // Read and display each booking entry
-    while (fread(&booking, sizeof(struct Booking), 1, file) == 1) {
+    while (fread(&booking, sizeof(struct Booking), 1, file) == 1)
+    {
         int bookedCount = 0;
 
         // Count how many seats were booked
-        for (int i = 0; i < MAX_SEATS; i++) {
-            if (booking.seats[i] != 0) { // Count only non-zero seats
+        for (int i = 0; i < MAX_SEATS; i++)
+        {
+            if (booking.seats[i] != 0)
+            { // Count only non-zero seats
                 bookedCount++;
             }
         }
@@ -694,7 +795,8 @@ void displayBookings() {
     printf(" +----------------------------------------------------------------------------------------------+\n");
 
     // Check for any read errors
-    if (ferror(file)) {
+    if (ferror(file))
+    {
         printf("Error occurred while reading the file.\n");
     }
 
@@ -746,7 +848,7 @@ void searchBookings()
                 printf("Ticket ID: %d\n", booking.ticketID);
                 printf("Name: %s\n", booking.name);
                 printf("Destination: %s\n", booking.destination);
-                printf("Category: %s\n",booking.category);
+                printf("Category: %s\n", booking.category);
                 printf("Price: Rs. %d\n", booking.price);
                 found = true;
             }
@@ -767,7 +869,7 @@ void searchBookings()
                 printf("Ticket ID: %d\n", booking.ticketID);
                 printf("Name: %s\n", booking.name);
                 printf("Destination: %s\n", booking.destination);
-                printf("Category: %s",booking.category);
+                printf("Category: %s", booking.category);
                 printf("Price: Rs. %d\n", booking.price);
                 found = true;
             }
@@ -788,32 +890,40 @@ void searchBookings()
     fclose(file);
 }
 
-// exit without save functionality 
-void removeLastBooking() {
+// exit without save functionality
+void removeLastBooking()
+{
     struct Booking *bookings = NULL;
     int count = 0;
     FILE *file = fopen(FILENAME, "rb");
-    if (file == NULL) {
-        return; 
+    if (file == NULL)
+    {
+        return;
     }
 
     // Count the number of bookings and read them into an array
-    while (!feof(file)) {
+    while (!feof(file))
+    {
         bookings = realloc(bookings, (count + 1) * sizeof(struct Booking));
-        if (fread(&bookings[count], sizeof(struct Booking), 1, file) == 1) {
+        if (fread(&bookings[count], sizeof(struct Booking), 1, file) == 1)
+        {
             count++;
         }
     }
     fclose(file);
 
     // If there are bookings, overwrite the file excluding the last booking
-    if (count > 1) {
+    if (count > 1)
+    {
         file = fopen(FILENAME, "wb");
-        for (int i = 0; i < count - 1; i++) {
+        for (int i = 0; i < count - 1; i++)
+        {
             fwrite(&bookings[i], sizeof(struct Booking), 1, file);
         }
         fclose(file);
-    } else {
+    }
+    else
+    {
         // If there was only one booking, just remove the file
         remove(FILENAME);
     }
@@ -821,43 +931,55 @@ void removeLastBooking() {
     free(bookings); // Free the allocated array
 }
 
-void displayCities() {
+void displayCities()
+{
     printf("Available Cities:\n");
-    for (int i = 0; i < numCities; i++) {
+    for (int i = 0; i < numCities; i++)
+    {
         printf("%d. %s\n", i + 1, indianCities[i]);
     }
 }
 
-bool cityExists(const char* cityName) {
-    for (int i = 0; i < numCities; i++) {
-        if (strcasecmp(indianCities[i], cityName) == 0) {
+bool cityExists(const char *cityName)
+{
+    for (int i = 0; i < numCities; i++)
+    {
+        if (strcasecmp(indianCities[i], cityName) == 0)
+        {
             return true;
         }
     }
     return false;
 }
 
-int selectCity() {
+int selectCity()
+{
     int choice;
 
-    while (1) {
+    while (1)
+    {
         printf("Please select a city (1-%d) or 0 to skip: ", numCities);
-        if (scanf("%d", &choice) != 1 || choice < 0 || choice > numCities) {
+        if (scanf("%d", &choice) != 1 || choice < 0 || choice > numCities)
+        {
             printf("Error: Invalid input. Please enter a number between 0 and %d.\n", numCities);
             clearInputBuffer();
-        } else {
+        }
+        else
+        {
             break; // Valid input received
         }
     }
 
-    clearInputBuffer(); 
+    clearInputBuffer();
     return choice;
 }
 
-void modifyBooking() {
+void modifyBooking()
+{
     int ticketID;
     printf("Enter Ticket ID to modify: ");
-    if (scanf("%d", &ticketID) != 1) {
+    if (scanf("%d", &ticketID) != 1)
+    {
         printf("Error: Invalid input.\n");
         clearInputBuffer();
         return;
@@ -867,16 +989,21 @@ void modifyBooking() {
     struct Booking booking;
     FILE *file = fopen(FILENAME, "rb");
     FILE *tempFile = fopen("temp.dat", "wb");
-    if (file == NULL || tempFile == NULL) {
+    if (file == NULL || tempFile == NULL)
+    {
         printf("Error opening file.\n");
-        if (file) fclose(file);
-        if (tempFile) fclose(tempFile);
+        if (file)
+            fclose(file);
+        if (tempFile)
+            fclose(tempFile);
         return;
     }
 
     bool found = false;
-    while (fread(&booking, sizeof(struct Booking), 1, file) == 1) {
-        if (booking.ticketID == ticketID) {
+    while (fread(&booking, sizeof(struct Booking), 1, file) == 1)
+    {
+        if (booking.ticketID == ticketID)
+        {
             found = true;
             printf("Current Booking Details:\n");
             printf("Name: %s\n", booking.name);
@@ -889,43 +1016,56 @@ void modifyBooking() {
             char newName[MAX_NAME_LENGTH];
             fgets(newName, MAX_NAME_LENGTH, stdin);
             newName[strcspn(newName, "\n")] = 0;
-            if (strlen(newName) > 0) {
+            if (strlen(newName) > 0)
+            {
                 strncpy(booking.name, newName, MAX_NAME_LENGTH);
             }
 
             // Display Indian Cities and Modify Current Location
-            for (int i = 0; i < numCities; i++) {
+            for (int i = 0; i < numCities; i++)
+            {
                 printf("%d. %s\n", i + 1, indianCities[i]);
             }
             printf("current location : ");
             int currentLocationChoice = selectCity();
-            if (currentLocationChoice > 0) {
+            if (currentLocationChoice > 0)
+            {
                 strncpy(booking.currentLocation, indianCities[currentLocationChoice - 1], MAX_DESTINATION_LENGTH);
-            } else if (currentLocationChoice == 0) {
+            }
+            else if (currentLocationChoice == 0)
+            {
                 printf("No change to the current location.\n");
             }
 
             // Display Cities and Modify Destination Location
-            for (int i = 0; i < numCities; i++) {
+            for (int i = 0; i < numCities; i++)
+            {
                 printf("%d. %s\n", i + 1, indianCities[i]);
             }
 
             printf("destination location : ");
             int newDestChoice = selectCity();
-            if (newDestChoice > 0) {
+            if (newDestChoice > 0)
+            {
                 strncpy(booking.destination, indianCities[newDestChoice - 1], MAX_DESTINATION_LENGTH);
-            } else if (newDestChoice == 0) {
+            }
+            else if (newDestChoice == 0)
+            {
                 printf("No change to the destination.\n");
             }
 
             // Modify Number of Travelers
             int n;
-            do {
+            do
+            {
                 printf("Enter new number of travelers: ");
-                if (scanf("%d", &n) != 1 || n <= 0) {
+                if (scanf("%d", &n) != 1 || n <= 0)
+                {
                     printf("Invalid input. Please enter a valid number of travelers (greater than zero).\n");
                     clearInputBuffer();
-                } else {
+                }
+                else
+                {
                     break;
                 }
             } while (1);
@@ -934,15 +1074,18 @@ void modifyBooking() {
             // Modify Ticket Category
             int categoryChoice;
             printf("Select Ticket Category:\n");
-            for (int i = 0; i < sizeof(ticketCategories) / sizeof(ticketCategories[0]); i++) {
+            for (int i = 0; i < sizeof(ticketCategories) / sizeof(ticketCategories[0]); i++)
+            {
                 printf("%d. %s\n", i + 1, ticketCategories[i]);
             }
 
-            do {
+            do
+            {
                 printf("Enter the number of your selected category (1-%ld): ", sizeof(ticketCategories) / sizeof(ticketCategories[0]));
                 if (scanf("%d", &categoryChoice) != 1 ||
                     categoryChoice < 1 ||
-                    categoryChoice > sizeof(ticketCategories) / sizeof(ticketCategories[0])) {
+                    categoryChoice > sizeof(ticketCategories) / sizeof(ticketCategories[0]))
+                {
                     printf("Error: Invalid choice. Please enter a number between 1 and %ld.\n", sizeof(ticketCategories) / sizeof(ticketCategories[0]));
                     clearInputBuffer();
                     continue;
@@ -952,18 +1095,24 @@ void modifyBooking() {
             } while (1);
 
             int currentLocationIndex = -1, destinationIndex = -1;
-            for (int i = 0; i < numCities; i++) {
-                if (strcmp(booking.currentLocation, indianCities[i]) == 0) {
+            for (int i = 0; i < numCities; i++)
+            {
+                if (strcmp(booking.currentLocation, indianCities[i]) == 0)
+                {
                     currentLocationIndex = i;
                 }
-                if (strcmp(booking.destination, indianCities[i]) == 0) {
+                if (strcmp(booking.destination, indianCities[i]) == 0)
+                {
                     destinationIndex = i;
                 }
             }
 
-            if (currentLocationIndex != -1 && destinationIndex != -1) {
+            if (currentLocationIndex != -1 && destinationIndex != -1)
+            {
                 booking.price = ticketPrices[currentLocationIndex][categoryChoice - 1];
-            } else {
+            }
+            else
+            {
                 printf("Error: Unable to find current location or destination in the cities list.\n");
                 fclose(file);
                 fclose(tempFile);
@@ -973,13 +1122,16 @@ void modifyBooking() {
             // Write updated booking to temp file
             fwrite(&booking, sizeof(struct Booking), 1, tempFile);
             printf("Booking modified successfully!\n");
-        } else {
+        }
+        else
+        {
             // Write unchanged booking to temp file
             fwrite(&booking, sizeof(struct Booking), 1, tempFile);
         }
     }
 
-    if (!found) {
+    if (!found)
+    {
         printf("Booking with Ticket ID %d not found.\n", ticketID);
     }
 
@@ -989,10 +1141,12 @@ void modifyBooking() {
     rename("temp.dat", FILENAME); // Replace original file with updated file
 }
 
-void cancelBooking() {
+void cancelBooking()
+{
     int ticketID;
     printf("Enter Ticket ID to cancel: ");
-    if (scanf("%d", &ticketID) != 1) {
+    if (scanf("%d", &ticketID) != 1)
+    {
         printf("Error: Invalid input.\n");
         clearInputBuffer();
         return;
@@ -1002,25 +1156,33 @@ void cancelBooking() {
     struct Booking booking;
     FILE *file = fopen(FILENAME, "rb");
     FILE *tempFile = fopen("temp.dat", "wb");
-    if (file == NULL || tempFile == NULL) {
+    if (file == NULL || tempFile == NULL)
+    {
         printf("Error opening file.\n");
-        if (file) fclose(file);
-        if (tempFile) fclose(tempFile);
+        if (file)
+            fclose(file);
+        if (tempFile)
+            fclose(tempFile);
         return;
     }
 
     bool found = false;
-    while (fread(&booking, sizeof(struct Booking), 1, file) == 1) {
-        if (booking.ticketID == ticketID) {
+    while (fread(&booking, sizeof(struct Booking), 1, file) == 1)
+    {
+        if (booking.ticketID == ticketID)
+        {
             found = true;
             printf("Booking with Ticket ID %d has been canceled successfully!\n", ticketID);
-        } else {
+        }
+        else
+        {
             // Write unchanged booking to temp file
             fwrite(&booking, sizeof(struct Booking), 1, tempFile);
         }
     }
 
-    if (!found) {
+    if (!found)
+    {
         printf("Booking with Ticket ID %d not found.\n", ticketID);
     }
 
@@ -1063,8 +1225,10 @@ void PopularDestinations()
     printCentered("|            Popular Destinations             |", 45);
     printf("+---------------------------------------------+\n");
 
-    for (int i = 0; i < numCities; i++) {
-        if (destinationCounts[i] > 0) {
+    for (int i = 0; i < numCities; i++)
+    {
+        if (destinationCounts[i] > 0)
+        {
             printf("| %-31s: %d bookings |\n", indianCities[i], destinationCounts[i]);
         }
     }
@@ -1096,8 +1260,9 @@ void RevenueStatistics()
     printf("+---------------------------------------------+\n");
 }
 
-void generateReports() {
-     printf("\n+---------------------------------------------+\n");
+void generateReports()
+{
+    printf("\n+---------------------------------------------+\n");
     printCentered("|           Reports and Analytics             |", 45);
     printf("+---------------------------------------------+\n");
 
@@ -1107,7 +1272,6 @@ void generateReports() {
     printf("+---------------------------------------------+\n");
 }
 
-
 void FAQ()
 {
     const char *questions[] = {
@@ -1115,24 +1279,22 @@ void FAQ()
         "2. Are there any discounts available on ticket bookings?",
         "3. Can I cancel or modify my booking?",
         "4. How can I choose my preferred seat?",
-        "5. How do I check the status of my booking?"
-    };
+        "5. How do I check the status of my booking?"};
 
     const char *answers[] = {
-    "When booking a ticket, select the 'Return Ticket' option by answering 'yes' when prompted. "
-    "The system will then allow you to book a round-trip ticket.",
-    
-    "Yes, you can use a promo code if you have one.",
-    
-    "Yes, you can cancel or modify your booking by logging into your account and navigating to "
-    "the 'My Bookings' section. Modifications are allowed up to 24 hours before the scheduled departure time.",
-    
-    "During the booking process, you will have an option to select your preferred seat if available. "
-    "Seat options vary based on the type of ticket and availability.",
-    
-    "To check the status of your booking, log into your account and go to the 'My Bookings' section. "
-    "You'll see the details and status of each ticket you've booked."
-    };
+        "When booking a ticket, select the 'Return Ticket' option by answering 'yes' when prompted. "
+        "The system will then allow you to book a round-trip ticket.",
+
+        "Yes, you can use a promo code if you have one.",
+
+        "Yes, you can cancel or modify your booking by logging into your account and navigating to "
+        "the 'My Bookings' section. Modifications are allowed up to 24 hours before the scheduled departure time.",
+
+        "During the booking process, you will have an option to select your preferred seat if available. "
+        "Seat options vary based on the type of ticket and availability.",
+
+        "To check the status of your booking, log into your account and go to the 'My Bookings' section. "
+        "You'll see the details and status of each ticket you've booked."};
 
     int choice;
     do
@@ -1167,6 +1329,7 @@ void FAQ()
     } while (1);
 }
 
+
 void displayCalendar() {
     printf("\n +----------------------------------------------------------------------------------------------+\n");
     printf(" | Date       | Current Location | Destination | Standard Price | VIP Price | Availability      |\n");
@@ -1187,41 +1350,45 @@ void displayCalendar() {
 
 int main()
 {
-     system("color 78");
-    while(1){
+    system("color 78");
+    while (1)
+    {
         showMenu();
-        handleInput(); 
+        handleInput();
     }
     return 0;
 }
 
-void showMenu(){
+void showMenu()
+{
     printf("\n");
-          printCentered("\033[30m+-----------------------------------------------+", 120);
-        printCentered("\033[30m|           Ticket Booking System               |", 120);
-        printCentered("\033[30m+-----------------------------------------------+", 120);
-        printCentered("\033[30m| 1. Show Schedule                              |", 120);
-        printCentered("\033[30m| 2. Add/Resume Booking                         |", 120);
-        printCentered("\033[30m| 3. Display Bookings                           |", 120);
-        printCentered("\033[30m| 4. Save Progress and Exit                     |", 120);
-        printCentered("\033[30m| 5. Exit without Saving                        |", 120);
-        printCentered("\033[30m| 6. Search Bookings                            |", 120);
-        printCentered("\033[30m| 7. Modify Booking                             |", 120);
-        printCentered("\033[30m| 8. Cancel Booking                             |", 120);
-        printCentered("\033[30m| 9. View Report                                |", 120);
-        printCentered("\033[30m| 10. Display FAQ.                               |", 120);
-        printCentered("\033[30m| 11. Exit.                                     |", 120);
-        printCentered("\033[30m+-----------------------------------------------+", 120);
+    printCentered("\033[30m+-----------------------------------------------+", 120);
+    printCentered("\033[30m|           Ticket Booking System               |", 120);
+    printCentered("\033[30m+-----------------------------------------------+", 120);
+    printCentered("\033[30m| 1. Add/Resume Booking                         |", 120);
+    printCentered("\033[30m| 2. Display Bookings                           |", 120);
+    printCentered("\033[30m| 3. Save Progress and Exit                     |", 120);
+    printCentered("\033[30m| 4. Exit without Saving                        |", 120);
+    printCentered("\033[30m| 5. Search Bookings                            |", 120);
+    printCentered("\033[30m| 6. Modify Booking                             |", 120);
+    printCentered("\033[30m| 7. Cancel Booking                             |", 120);
+    printCentered("\033[30m| 8. View Report                                |", 120);
+    printCentered("\033[30m| 9. Display FAQ.                               |", 120);
+    printCentered("\033[30m| 10. Exit.                                     |", 120);
+    printCentered("\033[30m+-----------------------------------------------+", 120);
+
 }
 
-
-void handleInput(){
+void handleInput()
+{
     int choice;
     struct PartialBooking partial;
 
-    while(1){
+    while (1)
+    {
         printf("Enter your choice: ");
-        if (scanf("%d", &choice) != 1) {
+        if (scanf("%d", &choice) != 1)
+        {
             printf("Invalid input. Please enter a number.\n");
             clearInputBuffer();
             continue;
@@ -1238,18 +1405,17 @@ void handleInput(){
             showMenu();
             break;
         case 3:
-            displayBookings();
-            showMenu();
-            break;
-        case 4:
-            if (partial.inProgress) {
+            if (partial.inProgress)
+            {
                 saveBookingProgress(&partial);
                 printf("Progress saved.\n");
 
                 int exitChoice;
-                do {
+                do
+                {
                     printf("Do you want to exit? (1: Yes, 0: No): ");
-                    if (scanf("%d", &exitChoice) != 1 || (exitChoice != 0 && exitChoice != 1)) {
+                    if (scanf("%d", &exitChoice) != 1 || (exitChoice != 0 && exitChoice != 1))
+                    {
                         printf("Invalid input. Please enter 1 for Yes or 0 for No.\n");
                         clearInputBuffer();
                         continue;
@@ -1257,30 +1423,40 @@ void handleInput(){
                     clearInputBuffer();
                 } while (exitChoice != 0 && exitChoice != 1);
 
-                if (exitChoice == 1) {
+                if (exitChoice == 1)
+                {
                     printf("Goodbye!\n");
                     exit(0);
-                } else {
+                }
+                else
+                {
                     continue;
                 }
-            } else {
+            }
+            else
+            {
                 printf("No booking in progress to save. Goodbye!\n");
                 exit(0);
             }
             showMenu();
             break;
-        case 5:
+        case 4:
             printf("Exiting without saving.\n");
-            if (remove(PARTIAL_BOOKING_FILENAME) == 0) {
+            if (remove(PARTIAL_BOOKING_FILENAME) == 0)
+            {
                 printf("Unsaved progress cleared.\n");
-            } else {
+            }
+            else
+            {
                 printf("No unsaved progress to clear.\n");
             }
 
             int exitChoice2;
-            do {
+            do
+            {
                 printf("Do you want to exit? (1: Yes, 0: No): ");
-                if (scanf("%d", &exitChoice2) != 1 || (exitChoice2 != 0 && exitChoice2 != 1)) {
+                if (scanf("%d", &exitChoice2) != 1 || (exitChoice2 != 0 && exitChoice2 != 1))
+                {
                     printf("Invalid input. Please enter 1 for Yes or 0 for No.\n");
                     clearInputBuffer();
                     continue;
@@ -1288,13 +1464,50 @@ void handleInput(){
                 clearInputBuffer();
             } while (exitChoice2 != 0 && exitChoice2 != 1);
 
-            if (exitChoice2 == 1) {
+            if (exitChoice2 == 1)
+            {
                 printf("Goodbye!\n");
                 exit(0);
-            } else {
+            }
+            else
+            {
                 // If the user chooses not to exit, continue with the program
                 continue;
+            }
+            break;
+        case 5:
+            printf("Exiting without saving.\n");
+            if (remove(PARTIAL_BOOKING_FILENAME) == 0)
+            {
+                printf("Unsaved progress cleared.\n");
+            }
+            else
+            {
+                printf("No unsaved progress to clear.\n");
+            }
 
+            int exitChoice2;
+            do
+            {
+                printf("Do you want to exit? (1: Yes, 0: No): ");
+                if (scanf("%d", &exitChoice2) != 1 || (exitChoice2 != 0 && exitChoice2 != 1))
+                {
+                    printf("Invalid input. Please enter 1 for Yes or 0 for No.\n");
+                    clearInputBuffer();
+                    continue;
+                }
+                clearInputBuffer();
+            } while (exitChoice2 != 0 && exitChoice2 != 1);
+
+            if (exitChoice2 == 1)
+            {
+                printf("Goodbye!\n");
+                exit(0);
+            }
+            else
+            {
+                // If the user chooses not to exit, continue with the program
+                continue;
             }
             break;
         case 6:
