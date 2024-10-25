@@ -12,6 +12,7 @@
 #define FILENAME "bookings.dat"
 #define PARTIAL_BOOKING_FILENAME "partial_booking.dat"
 #define PROGRESS_FILENAME "booking.det"
+#define MAX_PROMO_CODE_LENGTH 20
 
 struct Booking
 {
@@ -23,6 +24,8 @@ struct Booking
     char category[MAX_NAME_LENGTH];
     int seats[MAX_SEATS];
     int bookedSeat;
+     char promoCode[MAX_PROMO_CODE_LENGTH]; 
+    float discount;
 };
 
 struct PartialBooking
@@ -298,8 +301,17 @@ void printBookingSummary(const struct PartialBooking *partial, int n) {
     }
 
     printf("                             |\n");
-    printf(" | Price: Rs.%d                               |\n", partial->booking.price);
+    printf(" | Final Price: Rs. %-32d |\n", partial->booking.price);
     printf(" +----------------------------------------------+\n");
+}
+
+void Discount(struct Booking *booking, const char *promoCode) {
+    if (strcmp(promoCode, "meet") == 0) {
+        booking->discount = 10; 
+        booking->price -= booking->discount; // Reduce the price
+    } else {
+        booking->discount = 0; 
+    }
 }
 
 void addBooking() {
@@ -501,6 +513,14 @@ void addBooking() {
                 for (int j = 0; j < n; j++) {
                     bookSeatRoute(partial.booking.currentLocation, partial.booking.destination, partial.booking.seats[j]);
                 }
+
+                char promoCode[20];
+                printf("Enter promotional code (if any): ");
+                fgets(promoCode, sizeof(promoCode), stdin);
+                promoCode[strcspn(promoCode, "\n")] = 0; 
+
+                Discount(&partial.booking, promoCode);
+                
                 FILE *file = fopen(FILENAME, "ab");
                 if (file == NULL) {
                     printf("Error: Unable to open bookings file. Booking not saved.\n");
