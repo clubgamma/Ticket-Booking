@@ -1083,6 +1083,67 @@ void generateReports() {
 }
 
 
+void FAQ()
+{
+    const char *questions[] = {
+        "1. How do I book a return ticket?",
+        "2. Are there any discounts available on ticket bookings?",
+        "3. Can I cancel or modify my booking?",
+        "4. How can I choose my preferred seat?",
+        "5. How do I check the status of my booking?"
+    };
+
+    const char *answers[] = {
+    "When booking a ticket, select the 'Return Ticket' option by answering 'yes' when prompted. "
+    "The system will then allow you to book a round-trip ticket.",
+    
+    "Yes, you can use a promo code if you have one.",
+    
+    "Yes, you can cancel or modify your booking by logging into your account and navigating to "
+    "the 'My Bookings' section. Modifications are allowed up to 24 hours before the scheduled departure time.",
+    
+    "During the booking process, you will have an option to select your preferred seat if available. "
+    "Seat options vary based on the type of ticket and availability.",
+    
+    "To check the status of your booking, log into your account and go to the 'My Bookings' section. "
+    "You'll see the details and status of each ticket you've booked."
+    };
+
+    int choice;
+    do
+    {
+        printf("\n+---------------------------------------------+\n");
+        printCentered("|           Frequently Asked Questions        |", 45);
+        printf("+---------------------------------------------+\n");
+        int numFAQs = sizeof(questions) / sizeof(questions[0]);
+
+        printf("Frequently Asked Questions:\n");
+        for (int i = 0; i < numFAQs; i++)
+        {
+            printf("%s\n", questions[i]);
+        }
+
+        printf("\nEnter the number of the question you'd like more information about (0 to exit): ");
+        scanf("%d", &choice);
+
+        if (choice > 0 && choice <= numFAQs)
+        {
+            printf("\nAnswer:\n%s\n", answers[choice - 1]);
+        }
+        else if (choice == 0)
+        {
+            printf("Exiting FAQ section.\n");
+            break;
+        }
+        else
+        {
+            printf("Invalid choice. Please enter a number between 1 and %d.\n", numFAQs);
+        }
+    } while (1);
+}
+
+
+
 int main()
 {
      system("color 78");
@@ -1106,7 +1167,8 @@ void showMenu(){
         printCentered("\033[30m| 6. Modify Booking                             |", 120);
         printCentered("\033[30m| 7. Cancel Booking                             |", 120);
         printCentered("\033[30m| 8. View Report                                |", 120);
-        printCentered("\033[30m| 9. Exit.                                      |", 120);
+        printCentered("\033[30m| 9. Display FAQ.                               |", 120);
+        printCentered("\033[30m| 10. Exit.                                     |", 120);
         printCentered("\033[30m+-----------------------------------------------+", 120);
 }
 
@@ -1206,6 +1268,10 @@ void handleInput(){
             showMenu();
             break;
         case 9:
+            FAQ();
+            showMenu();
+            break;
+        case 10:
             exit(0);
             break;
         default:
