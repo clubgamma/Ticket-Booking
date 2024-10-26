@@ -47,6 +47,12 @@ struct RouteSeatAvailability
     bool seatAvailability[MAX_SEATS]; // Array to track availability for this specific route
 };
 
+struct Feedback {
+    int ticketID;
+    char name[MAX_NAME_LENGTH];
+    int rating; // Rating out of 5
+    char comments[200];
+};
 
 struct PromoCode
 {
@@ -757,6 +763,7 @@ void addBooking()
                 else
                 {
                     generateReferenceNumber(bookingReference, partial.booking.ticketID);
+                    recordFeedback(partial.booking.ticketID, partial.booking.name);
                     printf("\nBooking added successfully!\n");
 
                     const int width = 90;
@@ -1380,6 +1387,60 @@ void FAQ()
     } while (1);
 }
 
+void recordFeedback(int ticketID, const char* name) {
+    struct Feedback feedback;
+    feedback.ticketID = ticketID;
+    strncpy(feedback.name, name, MAX_NAME_LENGTH);
+
+    do {
+        printf("Rate your experience (1-5): ");
+        if (scanf("%d", &feedback.rating) != 1 || feedback.rating < 1 || feedback.rating > 5) {
+            printf("Invalid input. Please enter a number between 1 and 5.\n");
+            clearInputBuffer();
+        } else {
+            break; // valid input
+        }
+    } while (1);
+
+    clearInputBuffer();
+    printf("Enter Your Feedback (max 200 characters): ");
+    fgets(feedback.comments, sizeof(feedback.comments), stdin);
+    feedback.comments[strcspn(feedback.comments, "\n")] = 0; // Remove newline
+
+    FILE *file = fopen("feedbacks.dat", "ab");
+    if (file == NULL) {
+        printf("Error saving feedback. Please try again.\n");
+        return;
+    }
+    fwrite(&feedback, sizeof(struct Feedback), 1, file);
+    fclose(file);
+    printf("Thank you for your feedback!\n");
+}
+
+void displayFeedbacks() {
+    struct Feedback feedback;
+    FILE *file = fopen("feedbacks.dat", "rb");
+
+    if (file == NULL) {
+        printf("+-----------------------------------------------+\n");
+        printf("| No feedbacks available.                        |\n");
+        printf("+-----------------------------------------------+\n");
+        return;
+    }
+
+    printf("\nFeedbacks:\n");
+    printf("+----------------------------------------------------------------------+\n");
+    printf("| Ticket ID | Name                | Rating |      Comments             |\n");
+    printf("+----------------------------------------------------------------------+\n");
+
+    while (fread(&feedback, sizeof(struct Feedback), 1, file) == 1) {
+        printf("| %-10d | %-18s | %-6d | %s\n",
+               feedback.ticketID, feedback.name, feedback.rating, feedback.comments);
+    }
+    printf("+----------------------------------------------------------------------+\n");
+
+    fclose(file);
+}
 
 void displayCalendar() {
     printf("\n +----------------------------------------------------------------------------------------------+\n");
@@ -1416,16 +1477,18 @@ void showMenu()
     printCentered("\033[30m+-----------------------------------------------+", 120);
     printCentered("\033[30m|           Ticket Booking System               |", 120);
     printCentered("\033[30m+-----------------------------------------------+", 120);
-    printCentered("\033[30m| 1. Add/Resume Booking                         |", 120);
-    printCentered("\033[30m| 2. Display Bookings                           |", 120);
-    printCentered("\033[30m| 3. Save Progress and Exit                     |", 120);
-    printCentered("\033[30m| 4. Exit without Saving                        |", 120);
-    printCentered("\033[30m| 5. Search Bookings                            |", 120);
-    printCentered("\033[30m| 6. Modify Booking                             |", 120);
-    printCentered("\033[30m| 7. Cancel Booking                             |", 120);
-    printCentered("\033[30m| 8. View Report                                |", 120);
-    printCentered("\033[30m| 9. Display FAQ.                               |", 120);
-    printCentered("\033[30m| 10. Exit.                                     |", 120);
+    printCentered("\033[30m| 1. Show Schedule                              |", 120);
+    printCentered("\033[30m| 2. Add/Resume Booking                         |", 120);
+    printCentered("\033[30m| 3. Display Bookings                           |", 120);
+    printCentered("\033[30m| 4. Save Progress and Exit                     |", 120);
+    printCentered("\033[30m| 5. Exit without Saving                        |", 120);
+    printCentered("\033[30m| 6. Search Bookings                            |", 120);
+    printCentered("\033[30m| 7. Modify Booking                             |", 120);
+    printCentered("\033[30m| 8. Cancel Booking                             |", 120);
+    printCentered("\033[30m| 9. View Report                                |", 120);
+    printCentered("\033[30m| 10. View Feed Backs                           |", 120);
+    printCentered("\033[30m| 11. Display FAQ.                              |", 120);
+    printCentered("\033[30m| 12. Exit.                                     |", 120);
     printCentered("\033[30m+-----------------------------------------------+", 120);
 
 }
@@ -1502,20 +1565,20 @@ void handleInput()
                 printf("No unsaved progress to clear.\n");
             }
 
-            int exitChoice2;
+            int exitChoice;
             do
             {
                 printf("Do you want to exit? (1: Yes, 0: No): ");
-                if (scanf("%d", &exitChoice2) != 1 || (exitChoice2 != 0 && exitChoice2 != 1))
+                if (scanf("%d", &exitChoice) != 1 || (exitChoice != 0 && exitChoice != 1))
                 {
                     printf("Invalid input. Please enter 1 for Yes or 0 for No.\n");
                     clearInputBuffer();
                     continue;
                 }
                 clearInputBuffer();
-            } while (exitChoice2 != 0 && exitChoice2 != 1);
+            } while (exitChoice != 0 && exitChoice != 1);
 
-            if (exitChoice2 == 1)
+            if (exitChoice == 1)
             {
                 printf("Goodbye!\n");
                 exit(0);
@@ -1540,16 +1603,16 @@ void handleInput()
             do
             {
                 printf("Do you want to exit? (1: Yes, 0: No): ");
-                if (scanf("%d", &exitChoice2) != 1 || (exitChoice2 != 0 && exitChoice2 != 1))
+                if (scanf("%d", &exitChoice) != 1 || (exitChoice != 0 && exitChoice != 1))
                 {
                     printf("Invalid input. Please enter 1 for Yes or 0 for No.\n");
                     clearInputBuffer();
                     continue;
                 }
                 clearInputBuffer();
-            } while (exitChoice2 != 0 && exitChoice2 != 1);
+            } while (exitChoice != 0 && exitChoice != 1);
 
-            if (exitChoice2 == 1)
+            if (exitChoice == 1)
             {
                 printf("Goodbye!\n");
                 exit(0);
@@ -1577,10 +1640,13 @@ void handleInput()
             showMenu();
             break;
         case 10:
+            displayFeedbacks();
+            break;
+        case 11:
             FAQ();
             showMenu();
             break;
-        case 11:
+        case 12:
             exit(0);
             break;
         default:
