@@ -1513,6 +1513,7 @@ void handleInput()
         case 1:
            Initilize_Calendar();
            displayCalendar();
+           showMenu();
            break;
         case 2:
             TransportMode();
@@ -1521,6 +1522,7 @@ void handleInput()
           break;
        case 3:
             displayBookings();
+            showMenu();
            break;
         case 4:
             if (partial.inProgress)
