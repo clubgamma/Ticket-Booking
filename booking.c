@@ -126,12 +126,6 @@ void TransportMode() {
     clearInputBuffer();
 
     printf("You selected: %s\n", Transport_Choice == 1 ? "Bus" : "Train");
-
-    if (Transport_Choice == 1) {
-        handleInput();
-    } else {
-        handleInput();
-    }
 }
 
 void showMenu();
@@ -1472,11 +1466,8 @@ void displayCalendar() {
 int main()
 {
     system("color 78");
-    while (1)
-    {
-        showMenu();
-        TransportMode();
-    }
+
+    showMenu();
     return 0;
 }
 
@@ -1499,7 +1490,7 @@ void showMenu()
     printCentered("\033[30m| 11. Display FAQ.                              |", 120);
     printCentered("\033[30m| 12. Exit.                                     |", 120);
     printCentered("\033[30m+-----------------------------------------------+", 120);
-
+    handleInput();
 }
 
 void handleInput()
@@ -1524,6 +1515,7 @@ void handleInput()
            displayCalendar();
            break;
         case 2:
+            TransportMode();
             addBooking();
             showMenu();
           break;
