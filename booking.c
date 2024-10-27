@@ -1518,8 +1518,11 @@ void handleInput()
         case 2:
             addBooking();
             showMenu();
-            break;
-        case 3:
+          break;
+       case 3:
+            displayBookings();
+           break;
+        case 4:
             if (partial.inProgress)
             {
                 saveBookingProgress(&partial);
@@ -1555,41 +1558,6 @@ void handleInput()
             }
             showMenu();
             break;
-        case 4:
-            printf("Exiting without saving.\n");
-            if (remove(PARTIAL_BOOKING_FILENAME) == 0)
-            {
-                printf("Unsaved progress cleared.\n");
-            }
-            else
-            {
-                printf("No unsaved progress to clear.\n");
-            }
-
-            int exitChoice;
-            do
-            {
-                printf("Do you want to exit? (1: Yes, 0: No): ");
-                if (scanf("%d", &exitChoice) != 1 || (exitChoice != 0 && exitChoice != 1))
-                {
-                    printf("Invalid input. Please enter 1 for Yes or 0 for No.\n");
-                    clearInputBuffer();
-                    continue;
-                }
-                clearInputBuffer();
-            } while (exitChoice != 0 && exitChoice != 1);
-
-            if (exitChoice == 1)
-            {
-                printf("Goodbye!\n");
-                exit(0);
-            }
-            else
-            {
-                // If the user chooses not to exit, continue with the program
-                continue;
-            }
-            break;
         case 5:
             printf("Exiting without saving.\n");
             if (remove(PARTIAL_BOOKING_FILENAME) == 0)
@@ -1601,6 +1569,7 @@ void handleInput()
                 printf("No unsaved progress to clear.\n");
             }
 
+            int exitChoice;
             do
             {
                 printf("Do you want to exit? (1: Yes, 0: No): ");
