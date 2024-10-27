@@ -104,6 +104,13 @@ int busPrices[][2] = {
 
 int Transport_Choice;
 
+void clearInputBuffer()
+{
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF);
+}
+void handleInput();
+void recordFeedback(int ticketID, const char* name);
 void TransportMode() {
 
     printf("\nSelect mode of transport:\n");
@@ -157,13 +164,6 @@ void Initilize_Calendar() {
     }
 }
 
-
-void clearInputBuffer()
-{
-    int c;
-    while ((c = getchar()) != '\n' && c != EOF)
-        ;
-}
 
 void initializeSeats()
 {
