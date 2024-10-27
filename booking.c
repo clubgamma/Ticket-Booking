@@ -13,6 +13,7 @@
 #define PARTIAL_BOOKING_FILENAME "partial_booking.dat"
 #define PROGRESS_FILENAME "booking.det"
 
+void handleInput();
 struct Booking
 {
     int ticketID;
@@ -102,6 +103,14 @@ int busPrices[][2] = {
     {500, 1000}
 };
 
+// changing the error of clearInputBuffer was not declared int his scope as it was declared below 
+void clearInputBuffer()
+{
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF)
+        ;
+}
+
 int Transport_Choice;
 
 void TransportMode() {
@@ -113,7 +122,7 @@ void TransportMode() {
 
     if (scanf("%d", &Transport_Choice) != 1 || (Transport_Choice < 1 || Transport_Choice > 2)) {
         printf("Invalid choice. Please choose 1 for Bus or 2 for Train.\n");
-        clearInputBuffer();
+        clearInputBuffer(); 
         return;
     }
     clearInputBuffer();
@@ -126,9 +135,38 @@ void TransportMode() {
         handleInput();
     }
 }
+// declaring this above to remove the error recordFeedback was not declared in this scope
+void recordFeedback(int ticketID, const char* name) {
+    struct Feedback feedback;
+    feedback.ticketID = ticketID;
+    strncpy(feedback.name, name, MAX_NAME_LENGTH);
 
+    do {
+        printf("Rate your experience (1-5): ");
+        if (scanf("%d", &feedback.rating) != 1 || feedback.rating < 1 || feedback.rating > 5) {
+            printf("Invalid input. Please enter a number between 1 and 5.\n");
+            clearInputBuffer();
+        } else {
+            break; // valid input
+        }
+    } while (1);
+
+    clearInputBuffer();
+    printf("Enter Your Feedback (max 200 characters): ");
+    fgets(feedback.comments, sizeof(feedback.comments), stdin);
+    feedback.comments[strcspn(feedback.comments, "\n")] = 0; // Remove newline
+
+    FILE *file = fopen("feedbacks.dat", "ab");
+    if (file == NULL) {
+        printf("Error saving feedback. Please try again.\n");
+        return;
+    }
+    fwrite(&feedback, sizeof(struct Feedback), 1, file);
+    fclose(file);
+    printf("Thank you for your feedback!\n");
+}
 void showMenu();
-void handleInput();
+
 const int numCities = sizeof(indianCities) / sizeof(indianCities[0]);
 struct Routs routeSeatAvailability[MAX_ROUTES];
 int routeCount = 0; // Keep track of unique routes
@@ -158,12 +196,7 @@ void Initilize_Calendar() {
 }
 
 
-void clearInputBuffer()
-{
-    int c;
-    while ((c = getchar()) != '\n' && c != EOF)
-        ;
-}
+
 
 void initializeSeats()
 {
@@ -963,7 +996,7 @@ void removeLastBooking()
     // Count the number of bookings and read them into an array
     while (!feof(file))
     {
-        bookings = realloc(bookings, (count + 1) * sizeof(struct Booking));
+        bookings =(struct Booking*)realloc(bookings, (count + 1) * sizeof(struct Booking)); // reoving the error of retuning void value by explicit allocation
         if (fread(&bookings[count], sizeof(struct Booking), 1, file) == 1)
         {
             count++;
@@ -1388,35 +1421,7 @@ void FAQ()
     } while (1);
 }
 
-void recordFeedback(int ticketID, const char* name) {
-    struct Feedback feedback;
-    feedback.ticketID = ticketID;
-    strncpy(feedback.name, name, MAX_NAME_LENGTH);
 
-    do {
-        printf("Rate your experience (1-5): ");
-        if (scanf("%d", &feedback.rating) != 1 || feedback.rating < 1 || feedback.rating > 5) {
-            printf("Invalid input. Please enter a number between 1 and 5.\n");
-            clearInputBuffer();
-        } else {
-            break; // valid input
-        }
-    } while (1);
-
-    clearInputBuffer();
-    printf("Enter Your Feedback (max 200 characters): ");
-    fgets(feedback.comments, sizeof(feedback.comments), stdin);
-    feedback.comments[strcspn(feedback.comments, "\n")] = 0; // Remove newline
-
-    FILE *file = fopen("feedbacks.dat", "ab");
-    if (file == NULL) {
-        printf("Error saving feedback. Please try again.\n");
-        return;
-    }
-    fwrite(&feedback, sizeof(struct Feedback), 1, file);
-    fclose(file);
-    printf("Thank you for your feedback!\n");
-}
 
 void displayFeedbacks() {
     struct Feedback feedback;
