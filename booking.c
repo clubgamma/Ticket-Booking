@@ -389,25 +389,25 @@ int unique_id()
 
 void printBookingSummary(const struct PartialBooking *partial, int n)
 {
-    printf("\n +----------------------------------------------+\n");
-    printf(" |               Booking Summary                |\n");
-    printf(" +----------------------------------------------+\n");
-    printf(" | Ticket ID: %d                               |\n", partial->booking.ticketID);
-    printf(" | Name: %s                                     |\n", partial->booking.name);
-    printf(" | Current Location: %s                     |\n", partial->booking.currentLocation);
-    printf(" | Destination: %s                           |\n", partial->booking.destination);
-    printf(" | Number of Travelers: %d                       |\n", n);
-    printf(" | Category: %s                             |\n", ticketCategories[partial->booking.category[0]]);
+    printf("\n +--------------------------------------------------+\n");
+    printf(" |                 Booking Summary                  |\n");
+    printf(" +--------------------------------------------------+\n");
+    printf(" | Ticket ID: %-35d |\n", partial->booking.ticketID);
+    printf(" | Name: %-42s |\n", partial->booking.name);
+    printf(" | Current Location: %-30s |\n", partial->booking.currentLocation);
+    printf(" | Destination: %-34s |\n", partial->booking.destination);
+    printf(" | Number of Travelers: %-27d |\n", n);
+    printf(" | Category: %-36s |\n", partial->booking.category);
 
     printf(" | Seats Booked: ");
     for (int j = 0; j < n; j++)
     {
         printf("%d ", partial->booking.seats[j]);
     }
+    printf("%*s|\n", 39 - (2 * n), ""); // Adjust spacing based on seat numbers
 
-    printf("                             |\n");
-    printf(" | Price: Rs.%d                               |\n", partial->booking.price);
-    printf(" +----------------------------------------------+\n");
+    printf(" | Price: Rs.%-35d |\n", partial->booking.price);
+    printf(" +--------------------------------------------------+\n");
 }
 
 void addBooking()
@@ -618,6 +618,8 @@ void addBooking()
                 printf("Error: Invalid choice. Please enter a number between 1 and %ld.\n", sizeof(ticketCategories) / sizeof(ticketCategories[0]));
                 clearInputBuffer();
                 continue;
+            }else{
+                strcpy(partial.booking.category, ticketCategories[categoryChoice - 1]);
             }
             break;
         } while (1);
@@ -723,7 +725,6 @@ void addBooking()
 
         char confirm[10];
 
-        clearInputBuffer();
         printf("\n");
         do
         {
@@ -1525,8 +1526,11 @@ void handleInput()
         case 2:
             addBooking();
             showMenu();
-            break;
-        case 3:
+          break;
+       case 3:
+            displayBookings();
+           break;
+        case 4:
             if (partial.inProgress)
             {
                 saveBookingProgress(&partial);
@@ -1562,41 +1566,6 @@ void handleInput()
             }
             showMenu();
             break;
-        case 4:
-            printf("Exiting without saving.\n");
-            if (remove(PARTIAL_BOOKING_FILENAME) == 0)
-            {
-                printf("Unsaved progress cleared.\n");
-            }
-            else
-            {
-                printf("No unsaved progress to clear.\n");
-            }
-
-            int exitChoice;
-            do
-            {
-                printf("Do you want to exit? (1: Yes, 0: No): ");
-                if (scanf("%d", &exitChoice) != 1 || (exitChoice != 0 && exitChoice != 1))
-                {
-                    printf("Invalid input. Please enter 1 for Yes or 0 for No.\n");
-                    clearInputBuffer();
-                    continue;
-                }
-                clearInputBuffer();
-            } while (exitChoice != 0 && exitChoice != 1);
-
-            if (exitChoice == 1)
-            {
-                printf("Goodbye!\n");
-                exit(0);
-            }
-            else
-            {
-                // If the user chooses not to exit, continue with the program
-                continue;
-            }
-            break;
         case 5:
             printf("Exiting without saving.\n");
             if (remove(PARTIAL_BOOKING_FILENAME) == 0)
@@ -1608,6 +1577,7 @@ void handleInput()
                 printf("No unsaved progress to clear.\n");
             }
 
+            int exitChoice;
             do
             {
                 printf("Do you want to exit? (1: Yes, 0: No): ");
