@@ -1228,16 +1228,24 @@ void cancelBooking()
     bool found = false;
     while (fread(&booking, sizeof(struct Booking), 1, file) == 1)
     {
-        if (booking.ticketID == ticketID)
-        {
+        if (booking.ticketID == ticketID) {
             found = true;
-            printf("Booking with Ticket ID %d has been canceled successfully!\n", ticketID);
-        }
-        else
-        {
-            // Write unchanged booking to temp file
-            fwrite(&booking, sizeof(struct Booking), 1, tempFile);
-        }
+            printf("Booking with Ticket ID %d found. Are you sure you want to cancel? (1: Yes, 0: No): ", ticketID);
+            int confirm;
+            if (scanf("%d", &confirm) != 1 || (confirm < 0 || confirm > 1)) {
+                printf("Invalid input. Please enter 1 for Yes or 0 for No.\n");
+                clearInputBuffer();
+                fclose(file);
+                fclose(tempFile);
+                return;
+            }
+            clearInputBuffer();
+
+            if (confirm == 1) { printf("Ticket canceled successfully!\n", ticketID); } 
+            else {  fwrite(&booking, sizeof(struct Booking), 1, tempFile);  }
+            
+        } 
+        else { fwrite(&booking, sizeof(struct Booking), 1, tempFile); }
     }
 
     if (!found)
