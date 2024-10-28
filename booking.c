@@ -113,6 +113,13 @@ void clearInputBuffer()
 
 int Transport_Choice;
 
+void clearInputBuffer()
+{
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF);
+}
+void handleInput();
+void recordFeedback(int ticketID, const char* name);
 void TransportMode() {
 
     printf("\nSelect mode of transport:\n");
@@ -128,12 +135,6 @@ void TransportMode() {
     clearInputBuffer();
 
     printf("You selected: %s\n", Transport_Choice == 1 ? "Bus" : "Train");
-
-    if (Transport_Choice == 1) {
-        handleInput();
-    } else {
-        handleInput();
-    }
 }
 // declaring this above to remove the error recordFeedback was not declared in this scope
 void recordFeedback(int ticketID, const char* name) {
@@ -194,8 +195,6 @@ void Initilize_Calendar() {
         tickets[i].available = (i % 2 == 0); // Alternate availability for demonstration
     }
 }
-
-
 
 
 void initializeSeats()
@@ -1261,16 +1260,24 @@ void cancelBooking()
     bool found = false;
     while (fread(&booking, sizeof(struct Booking), 1, file) == 1)
     {
-        if (booking.ticketID == ticketID)
-        {
+        if (booking.ticketID == ticketID) {
             found = true;
-            printf("Booking with Ticket ID %d has been canceled successfully!\n", ticketID);
-        }
-        else
-        {
-            // Write unchanged booking to temp file
-            fwrite(&booking, sizeof(struct Booking), 1, tempFile);
-        }
+            printf("Booking with Ticket ID %d found. Are you sure you want to cancel? (1: Yes, 0: No): ", ticketID);
+            int confirm;
+            if (scanf("%d", &confirm) != 1 || (confirm < 0 || confirm > 1)) {
+                printf("Invalid input. Please enter 1 for Yes or 0 for No.\n");
+                clearInputBuffer();
+                fclose(file);
+                fclose(tempFile);
+                return;
+            }
+            clearInputBuffer();
+
+            if (confirm == 1) { printf("Ticket canceled successfully!\n", ticketID); } 
+            else {  fwrite(&booking, sizeof(struct Booking), 1, tempFile);  }
+            
+        } 
+        else { fwrite(&booking, sizeof(struct Booking), 1, tempFile); }
     }
 
     if (!found)
@@ -1469,11 +1476,8 @@ void displayCalendar() {
 int main()
 {
     system("color 78");
-    while (1)
-    {
-        showMenu();
-        TransportMode();
-    }
+
+    showMenu();
     return 0;
 }
 
@@ -1496,7 +1500,7 @@ void showMenu()
     printCentered("\033[30m| 11. Display FAQ.                              |", 120);
     printCentered("\033[30m| 12. Exit.                                     |", 120);
     printCentered("\033[30m+-----------------------------------------------+", 120);
-
+    handleInput();
 }
 
 void handleInput()
@@ -1519,13 +1523,16 @@ void handleInput()
         case 1:
            Initilize_Calendar();
            displayCalendar();
+           showMenu();
            break;
         case 2:
+            TransportMode();
             addBooking();
             showMenu();
           break;
        case 3:
             displayBookings();
+            showMenu();
            break;
         case 4:
             if (partial.inProgress)
