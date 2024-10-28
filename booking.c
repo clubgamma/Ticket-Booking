@@ -24,6 +24,7 @@ struct Booking
     int seats[MAX_SEATS];
     int bookedSeat;
     bool returnTicket;
+    char mode[MAX_NAME_LENGTH];
 };
 
 struct PartialBooking
@@ -111,21 +112,25 @@ void clearInputBuffer()
 }
 void handleInput();
 void recordFeedback(int ticketID, const char* name);
-void TransportMode() {
 
-    printf("\nSelect mode of transport:\n");
-    printf("1. Bus\n");
-    printf("2. Train\n");
-    printf("Enter your choice: ");
+void TransportMode(struct PartialBooking* partial) {
+    while(1){
+        int Transport_Choice;
+        printf("\nSelect mode of transport:\n");
+        printf("1. Bus\n");
+        printf("2. Train\n");
+        printf("Enter your choice: ");
 
-    if (scanf("%d", &Transport_Choice) != 1 || (Transport_Choice < 1 || Transport_Choice > 2)) {
-        printf("Invalid choice. Please choose 1 for Bus or 2 for Train.\n");
+        if (scanf("%d", &Transport_Choice) != 1 || (Transport_Choice < 1 || Transport_Choice > 2)) {
+            printf("Invalid choice. Please choose 1 for Bus or 2 for Train.\n");
+            clearInputBuffer();
+            continue;
+        }
         clearInputBuffer();
-        return;
+        strcpy(partial->booking.mode, (Transport_Choice == 1) ? "Bus" : "Train");
+        printf("You selected: %s\n", Transport_Choice == 1 ? "Bus" : "Train");
+        break;
     }
-    clearInputBuffer();
-
-    printf("You selected: %s\n", Transport_Choice == 1 ? "Bus" : "Train");
 }
 
 void showMenu();
@@ -390,6 +395,7 @@ void printBookingSummary(const struct PartialBooking *partial, int n)
     printf(" | Name: %-42s |\n", partial->booking.name);
     printf(" | Current Location: %-30s |\n", partial->booking.currentLocation);
     printf(" | Destination: %-34s |\n", partial->booking.destination);
+    printf(" | Mode: %-36s |\n", partial->booking.mode);
     printf(" | Number of Travelers: %-27d |\n", n);
     printf(" | Category: %-36s |\n", partial->booking.category);
 
@@ -410,6 +416,7 @@ void addBooking()
     bool resuming = false;
     char bookingReference[20]; // To store the generated booking reference number
 
+    TransportMode(&partial);
     if (loadPartialBooking(&partial) && partial.inProgress)
     {
         printf("You have a partially completed booking. Do you want to resume? (1: Yes, 0: No): ");
@@ -1516,7 +1523,6 @@ void handleInput()
            showMenu();
            break;
         case 2:
-            TransportMode();
             addBooking();
             showMenu();
           break;
