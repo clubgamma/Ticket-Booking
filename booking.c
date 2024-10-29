@@ -780,7 +780,7 @@ void addBooking()
                     printf(" | Current Location: %-26s |\n", partial.booking.currentLocation);
                     printf(" | Destination: %-31s |\n", partial.booking.destination);
                     printf(" | Number of Travelers: %-23d |\n", n);
-                    printf(" | Category: %-34s |\n", ticketCategories[partial.booking.category[0]]);
+                    printf(" | Category: %-34s |\n", partial.booking.category);
                     printf("| Seats Booked: ");
                     for (int j = 0; j < n; j++)
                     {
