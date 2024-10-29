@@ -30,14 +30,20 @@ A simple ticket booking system implemented in C that allows users to add and dis
 
 ## Installation
 
-1. Clone the repository:
+1. Fork the repository:
+
+   ```bash
+   Use the fork button at the top right of the repository page.
+   ```
+
+2. Clone the forked repository:
 
    ```bash
    git clone https://github.com/your-username/ticket-booking-system.git
    cd ticket-booking-system
    ```
 
-2. Compile the program:
+3. Compile the program:
    ```bash
    gcc -o booking booking.c
    ```
