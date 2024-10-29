@@ -25,6 +25,7 @@ struct Booking
     int bookedSeat;
     bool returnTicket;
     char mode[MAX_NAME_LENGTH];
+    int numTravelers;
 };
 
 struct PartialBooking
@@ -1116,43 +1117,93 @@ void modifyBooking()
 
             // Modify Number of Travelers
             int n;
-            do
-            {
-                printf("Enter new number of travelers: ");
-                if (scanf("%d", &n) != 1 || n <= 0)
-                {
-                    printf("Invalid input. Please enter a valid number of travelers (greater than zero).\n");
+           do {
+             printf("Enter new number of travelers (or enter 0 to skip): ");
+               if (scanf("%d", &n) != 1) {
+                    printf("Invalid input. Please enter a valid number of travelers.\n");
                     clearInputBuffer();
-                }
-                else
-                {
+              } 
+               else if (n < 0) {
+                    printf("Please enter a valid number greater than or equal to 0.\n");
+                    clearInputBuffer();
+              } 
+               else {
                     break;
-                }
-            } while (1);
-            clearInputBuffer();
+             }
+          } while (1);
+            
+               clearInputBuffer();
 
+             if (n > 0) {
+                    booking.numTravelers = n;
+            } 
+             else if (n == 0) {
+                  printf("No change to the number of travelers.\n");
+             }
             // Modify Ticket Category
-            int categoryChoice;
-            printf("Select Ticket Category:\n");
-            for (int i = 0; i < sizeof(ticketCategories) / sizeof(ticketCategories[0]); i++)
-            {
-                printf("%d. %s\n", i + 1, ticketCategories[i]);
-            }
-
-            do
-            {
-                printf("Enter the number of your selected category (1-%ld): ", sizeof(ticketCategories) / sizeof(ticketCategories[0]));
-                if (scanf("%d", &categoryChoice) != 1 ||
-                    categoryChoice < 1 ||
-                    categoryChoice > sizeof(ticketCategories) / sizeof(ticketCategories[0]))
-                {
-                    printf("Error: Invalid choice. Please enter a number between 1 and %ld.\n", sizeof(ticketCategories) / sizeof(ticketCategories[0]));
-                    clearInputBuffer();
-                    continue;
+              int cateChoice;
+              printf("Select Ticket Category (enter 0 to skip):\n");
+            
+               for (int i = 0; i < sizeof(ticketCategories) / sizeof(ticketCategories[0]); i++) {
+                      printf("%d. %s\n", i + 1, ticketCategories[i]);
                 }
-                break;
 
-            } while (1);
+               char categoryInput[10];
+               fgets(categoryInput, sizeof(categoryInput), stdin);
+            
+               if (sscanf(categoryInput, "%d", &cateChoice) == 1 && cateChoice != 0 &&
+                    cateChoice >= 1 && cateChoice <= sizeof(ticketCategories) / sizeof(ticketCategories[0])) 
+               {
+                     booking.category[0] = cateChoice - 1; 
+               } 
+               else 
+               {
+                     printf("No change to the category.\n");
+                }
+
+
+            // Modify Seats for Each Traveler
+printf("Select new seats for the travelers (enter 0 to skip):\n");
+
+
+for (int i = 0; i < booking.numTravelers; i++) {
+   
+    if (i < booking.bookedSeat && booking.seats[i] != 0) {
+        printf("Current seat for traveler %d: %d\n", i + 1, booking.seats[i]);
+    } else {
+        printf("Current seat for traveler %d: None\n", i + 1);
+    }
+
+    int newSeatNum;
+    while (1) {
+        char seatInput[10];
+        printf("Select new seat number for traveler %d (or enter 0 to skip): ", i + 1);
+        fgets(seatInput, sizeof(seatInput), stdin);
+
+
+        if (strcmp(seatInput, "0\n") == 0) {
+
+            if (i >= booking.bookedSeat || booking.seats[i] == 0) {
+                printf("Error: New travelers must have a seat assigned.\n");
+                continue;
+            }
+            printf("No change for traveler %d's seat.\n", i + 1);
+            break;
+        }
+
+        if (sscanf(seatInput, "%d", &newSeatNum) == 1 && newSeatNum >= 1 && newSeatNum <= MAX_SEATS) {
+            booking.seats[i] = newSeatNum;
+            printf("Traveler %d's seat successfully changed to %d.\n", i + 1, newSeatNum);
+            break;
+        } else {
+            printf("Error: Invalid seat number. Please enter a valid seat (1-%d).\n", MAX_SEATS);
+        }
+    }
+}
+
+
+booking.bookedSeat = booking.numTravelers;
+
 
             int currentLocationIndex = -1, destinationIndex = -1;
             for (int i = 0; i < numCities; i++)
@@ -1169,7 +1220,7 @@ void modifyBooking()
 
             if (currentLocationIndex != -1 && destinationIndex != -1)
             {
-                booking.price = ticketPrices[currentLocationIndex][categoryChoice - 1];
+                booking.price = ticketPrices[currentLocationIndex][cateChoice - 1];
             }
             else
             {
