@@ -6,6 +6,7 @@
 #include <time.h>
 
 #define MAX_NAME_LENGTH 50
+#define MAX_COMMENT_LENGTH 200
 #define MAX_DESTINATION_LENGTH 50
 #define MAX_SEATS 50
 #define MAX_ROUTES 100
@@ -787,7 +788,7 @@ void addBooking()
                     {
                         printf("%d ", partial.booking.seats[j]);
                     }
-                    printf("%*s |\n", (width - strlen("| Seats Booked: ") - (n * 2) - 1), ""); // Calculate space to keep in line
+                    printf("%lu |\n", (width - strlen("| Seats Booked: ") - (n * 2) - 1), ""); // Calculate space to keep in line
                     printf(" | Price: Rs. %-32d  |\n", partial.booking.price);
                     printCentered("+----------------------------------------------+", 50);
                 }
@@ -1451,31 +1452,35 @@ void FAQ()
 void recordFeedback(int ticketID, const char* name) {
     struct Feedback feedback;
     feedback.ticketID = ticketID;
-    strncpy(feedback.name, name, MAX_NAME_LENGTH);
+    strncpy(feedback.name, name, MAX_NAME_LENGTH - 1);
+    feedback.name[MAX_NAME_LENGTH - 1] = '\0';  // Ensure null termination
 
-    do {
+    // Input and validate rating
+    printf("Rate your experience (1-5): ");
+    while (scanf("%d", &feedback.rating) != 1 || feedback.rating < 1 || feedback.rating > 5) {
+        printf("Invalid input. Please enter a number between 1 and 5.\n");
+        clearInputBuffer();  // Clear invalid input
         printf("Rate your experience (1-5): ");
-        if (scanf("%d", &feedback.rating) != 1 || feedback.rating < 1 || feedback.rating > 5) {
-            printf("Invalid input. Please enter a number between 1 and 5.\n");
-            clearInputBuffer();
-        } else {
-            break; // valid input
-        }
-    } while (1);
+    }
+    clearInputBuffer();  // Clear newline after valid input
 
-    clearInputBuffer();
-    printf("Enter Your Feedback (max 200 characters): ");
+    // Input feedback comments
+    printf("Enter Your Feedback (max %d characters): ", MAX_COMMENT_LENGTH - 1);
     fgets(feedback.comments, sizeof(feedback.comments), stdin);
-    feedback.comments[strcspn(feedback.comments, "\n")] = 0; // Remove newline
+    feedback.comments[strcspn(feedback.comments, "\n")] = '\0'; // Remove newline
 
+    // Save feedback to file
     FILE *file = fopen("feedbacks.dat", "ab");
     if (file == NULL) {
-        printf("Error saving feedback. Please try again.\n");
+        perror("Error opening file");
         return;
     }
-    fwrite(&feedback, sizeof(struct Feedback), 1, file);
+    if (fwrite(&feedback, sizeof(struct Feedback), 1, file) != 1) {
+        printf("Error writing feedback to file.\n");
+    } else {
+        printf("Thank you for your feedback!\n");
+    }
     fclose(file);
-    printf("Thank you for your feedback!\n");
 }
 
 void displayFeedbacks() {
