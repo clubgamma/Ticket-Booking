@@ -1253,12 +1253,10 @@ booking.bookedSeat = booking.numTravelers;
     rename("temp.dat", FILENAME); // Replace original file with updated file
 }
 
-void cancelBooking()
-{
+void cancelBooking() {
     int ticketID;
     printf("Enter Ticket ID to cancel: ");
-    if (scanf("%d", &ticketID) != 1)
-    {
+    if (scanf("%d", &ticketID) != 1) {
         printf("Error: Invalid input.\n");
         clearInputBuffer();
         return;
@@ -1268,49 +1266,46 @@ void cancelBooking()
     struct Booking booking;
     FILE *file = fopen(FILENAME, "rb");
     FILE *tempFile = fopen("temp.dat", "wb");
-    if (file == NULL || tempFile == NULL)
-    {
-        printf("Error opening file.\n");
-        if (file)
-            fclose(file);
-        if (tempFile)
-            fclose(tempFile);
+    
+    if (!file || !tempFile) {
+        perror("Error opening file");
+        if (file) fclose(file);
+        if (tempFile) fclose(tempFile);
         return;
     }
 
     bool found = false;
-    while (fread(&booking, sizeof(struct Booking), 1, file) == 1)
-    {
+    while (fread(&booking, sizeof(struct Booking), 1, file) == 1) {
         if (booking.ticketID == ticketID) {
             found = true;
-            printf("Booking with Ticket ID %d found. Are you sure you want to cancel? (1: Yes, 0: No): ", ticketID);
+            printf("Booking with Ticket ID %d found. Cancel booking? (1: Yes, 0: No): ", ticketID);
             int confirm;
-            if (scanf("%d", &confirm) != 1 || (confirm < 0 || confirm > 1)) {
+            if (scanf("%d", &confirm) != 1 || (confirm != 0 && confirm != 1)) {
                 printf("Invalid input. Please enter 1 for Yes or 0 for No.\n");
                 clearInputBuffer();
-                fclose(file);
-                fclose(tempFile);
-                return;
+                confirm = 0;  // Default to not canceling if input invalid
             }
             clearInputBuffer();
-
-            if (confirm == 1) { printf("Ticket canceled successfully!\n", ticketID); } 
-            else {  fwrite(&booking, sizeof(struct Booking), 1, tempFile);  }
             
-        } 
-        else { fwrite(&booking, sizeof(struct Booking), 1, tempFile); }
+            if (confirm == 1) {
+                printf("Ticket ID %d canceled successfully!\n", ticketID);
+                continue; // Skip writing to temp file to "cancel" booking
+            }
+        }
+        fwrite(&booking, sizeof(struct Booking), 1, tempFile);  // Write unchanged or kept booking
     }
 
-    if (!found)
-    {
+    if (!found) {
         printf("Booking with Ticket ID %d not found.\n", ticketID);
     }
 
     fclose(file);
     fclose(tempFile);
+
     remove(FILENAME);
-    rename("temp.dat", FILENAME); // Replace original file with updated file
+    rename("temp.dat", FILENAME);  // Replace original file with updated file
 }
+
 
 void PopularDestinations()
 {
