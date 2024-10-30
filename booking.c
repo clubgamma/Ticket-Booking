@@ -821,6 +821,22 @@ void addBooking()
 
 void displayBookings()
 {
+    int Transport_Choice;
+    while(1){
+        printf("\nSelect mode of transport:\n");
+        printf("1. Bus\n");
+        printf("2. Train\n");
+        printf("Enter your choice: ");
+
+        if (scanf("%d", &Transport_Choice) != 1 || (Transport_Choice < 1 || Transport_Choice > 2)) {
+            printf("Invalid choice. Please choose 1 for Bus or 2 for Train.\n");
+            clearInputBuffer();
+            continue;
+        }
+        clearInputBuffer();
+        printf("You selected: %s\n", Transport_Choice == 1 ? "Bus" : "Train");
+        break;
+    }
     struct Booking booking;
     FILE *file = fopen(FILENAME, "rb");
 
@@ -831,9 +847,9 @@ void displayBookings()
     }
 
     // Adjusted header to include "Booked Seat"
-    printf("\n +----------------------------------------------------------------------------------------------+\n");
-    printf(" | %-10s %-20s %-20s %-20s %-10s %-6.5s |\n", "Ticket ID", "Name", "Current Location", "Destination", "Booked Seat", "Price");
-    printf(" +----------------------------------------------------------------------------------------------+\n");
+    printf("\n +----------------------------------------------------------------------------------------------------------+\n");
+    printf(" | %-10s %-20s %-20s %-20s %-10s %-6.5s %10s|\n", "Ticket ID", "Name", "Current Location", "Destination", "Booked Seat", "Price", "Mode");
+    printf(" +----------------------------------------------------------------------------------------------------------+\n");
 
     // Read and display each booking entry
     while (fread(&booking, sizeof(struct Booking), 1, file) == 1)
@@ -850,11 +866,21 @@ void displayBookings()
         }
 
         // Display booking information
-        printf(" | %-10d %-20s %-20s %-20s %-10d Rs.%d |\n",
+        if(Transport_Choice==1){
+            if(strcmp(booking.mode , "Bus") == 0){
+            printf(" | %-10d %-20s %-20s %-20s %-10d Rs.%4d %10s |\n",
                booking.ticketID, booking.name, booking.currentLocation,
-               booking.destination, bookedCount, booking.price);
+               booking.destination, bookedCount, booking.price ,booking.mode);
+            }
+        }else{
+            if(strcmp(booking.mode , "Train") ==0){
+            printf(" | %-10d %-20s %-20s %-20s %-10d Rs.%4d %10s |\n",
+               booking.ticketID, booking.name, booking.currentLocation,
+               booking.destination, bookedCount, booking.price ,booking.mode);
+            }
+        }
     }
-    printf(" +----------------------------------------------------------------------------------------------+\n");
+    printf(" +----------------------------------------------------------------------------------------------------------+\n");
 
     // Check for any read errors
     if (ferror(file))
