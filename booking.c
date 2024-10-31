@@ -13,6 +13,9 @@
 #define FILENAME "bookings.dat"
 #define PARTIAL_BOOKING_FILENAME "partial_booking.dat"
 #define PROGRESS_FILENAME "booking.det"
+#define POINTS_PER_BOOKING 100
+#define POINT_VALUE 100 
+#define MIN_BOOKING_PRICE 1800
 
 struct Booking
 {
@@ -62,6 +65,12 @@ struct PromoCode
     char code[20];
     int discount;
 };
+
+struct User {
+    char name[MAX_NAME_LENGTH];
+    int points; 
+};
+
 struct Calendar {
     char date[11];
     char currentLocation[MAX_NAME_LENGTH];
@@ -418,6 +427,9 @@ void addBooking()
     bool resuming = false;
     char bookingReference[20]; // To store the generated booking reference number
 
+    char userName[MAX_NAME_LENGTH];
+    strcpy(userName, partial.booking.name);
+    
     TransportMode(&partial);
     if (loadPartialBooking(&partial) && partial.inProgress)
     {
@@ -753,6 +765,33 @@ void addBooking()
                 {
                     bookSeatRoute(partial.booking.currentLocation, partial.booking.destination, partial.booking.seats[j]);
                 }
+
+                int totalBookingPrice = partial.booking.price; 
+
+                 update_reedem_Points(partial.booking.name, partial.booking.price);
+                 int currentPoints = getPoints(partial.booking.name);
+                 printf("Your current Reedem points: %d\n", currentPoints);
+
+                 int pointsToRedeem;
+                 printf("Do you want to redeem Rddem points? (Enter points to redeem, 0 to skip): ");
+                 scanf("%d", &pointsToRedeem);
+                 clearInputBuffer();
+
+                 if (pointsToRedeem > currentPoints) {
+                 printf("Error: You cannot reedem more points than you have. Available points: %d\n", currentPoints);
+                 pointsToRedeem = 0; 
+               }
+
+                 if (pointsToRedeem > 0) {
+                      int redeemedPoints = RedeemPoints(partial.booking.name, pointsToRedeem);
+                           if (redeemedPoints > 0) {
+                                 partial.booking.price -= redeemedPoints * 100; 
+                                 printf("Reedem points redeemed successfully! New price: Rs. %d\n", partial.booking.price);
+                           } else {
+                                 printf("Insufficient Reedem points or error reedeming points.\n");
+                           }
+                }
+                
                 FILE *file = fopen(FILENAME, "ab");
                 if (file == NULL)
                 {
@@ -817,6 +856,115 @@ void addBooking()
 
         } while (1);
     }
+}
+
+int getPoints(const char* userName) {
+    struct User user;
+    FILE *file = fopen("reedem_points.dat", "rb");
+    if (file == NULL) {
+        file = fopen("reedem_points.dat", "wb");
+        if (file == NULL) {
+            printf("Error: Unable to create reedem points file.\n");
+            return 0;
+        }
+        fclose(file);
+        return 0;
+    }
+
+    while (fread(&user, sizeof(struct User), 1, file) == 1) {
+        if (strcmp(user.name, userName) == 0) {
+            fclose(file);
+            return user.points;
+        }
+    }
+
+    fclose(file);
+    return 0; 
+}
+
+void update_reedem_Points(const char* userName, int bookingPrice) {
+    if (bookingPrice > 1800) { 
+        struct User user;
+        FILE *file = fopen("reedem_points.dat", "rb+");
+        if (file == NULL) {
+            file = fopen("reedem_points.dat", "wb+");
+            if (file == NULL) {
+                printf("Error: Unable to create Reedem points file.\n");
+                return;
+            }
+        }
+
+        int userFound = 0; 
+        while (fread(&user, sizeof(struct User), 1, file) == 1) {
+            if (strcmp(user.name, userName) == 0) {
+                user.points += 10; 
+                fseek(file, -sizeof(struct User), SEEK_CUR); 
+                fwrite(&user, sizeof(struct User), 1, file); 
+                printf("Reedem points updated! New total: %d\n", user.points);
+                userFound = 1; 
+                break;
+            }
+        }
+
+        if (!userFound) {
+            // If user not found, create a new entry
+            strncpy(user.name, userName, MAX_NAME_LENGTH);
+            user.points = 10; // Start with 10 points for the first booking
+            fwrite(&user, sizeof(struct User), 1, file); // Add new user record
+            printf("New user created. Reedem points: %d\n", user.points);
+        }
+
+        fclose(file);
+    } else {
+        printf("Booking price is not high enough to earn Reedem points.\n");
+    }
+}
+
+int RedeemPoints(const char* userName, int pointsToRedeem) {
+    struct User user;
+    FILE *file = fopen("reedem_points.dat", "rb+");
+    if (file == NULL) {
+        printf("Error: Unable to open reedem points file.\n");
+        return 0; 
+    }
+
+    while (fread(&user, sizeof(struct User), 1, file) == 1) {
+        if (strcmp(user.name, userName) == 0) {
+            if (user.points >= pointsToRedeem) {
+                user.points -= pointsToRedeem; 
+                fseek(file, -sizeof(struct User), SEEK_CUR); 
+                fwrite(&user, sizeof(struct User), 1, file);
+                fclose(file);
+                return pointsToRedeem; 
+            } else {
+                fclose(file);
+                return 0; // Not enough points
+            }
+        }
+    }
+
+    fclose(file);
+    return 0; 
+}
+
+void displayPoints(const char* userName) {
+    struct User user;
+    FILE *file = fopen("reedem_points.dat", "rb");
+    if (file == NULL) {
+        printf("Error: Unable to open Reedem points file.\n");
+        return;
+    }
+
+    while (fread(&user, sizeof(struct User), 1, file) == 1) {
+        if (strcmp(user.name, userName) == 0) {
+            printf("Your current Reedem points: %d\n", user.points);
+            fclose(file);
+            return;
+        }
+    }
+
+    fclose(file);
+    printf("No Reedem points found for this user.\n");
 }
 
 void displayBookings()
@@ -1573,6 +1721,7 @@ void showMenu()
     printCentered("\033[30m| 10. View Feed Backs                           |", 120);
     printCentered("\033[30m| 11. Display FAQ.                              |", 120);
     printCentered("\033[30m| 12. Exit.                                     |", 120);
+    printCentered("\033[30m| 13. Display Reedem Points                     |",120);
     printCentered("\033[30m+-----------------------------------------------+", 120);
     handleInput();
 }
@@ -1704,6 +1853,14 @@ void handleInput()
         case 12:
             exit(0);
             break;
+        case 13:
+            printf("Enter your name to view Reedem points: ");
+            char userName[MAX_NAME_LENGTH];
+            fgets(userName, MAX_NAME_LENGTH, stdin);
+            userName[strcspn(userName, "\n")] = 0; 
+            displayPoints(userName);
+            showMenu();
+        break;
         default:
             printf("Invalid choice. Please try again.\n");
         }
