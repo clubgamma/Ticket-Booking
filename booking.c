@@ -114,6 +114,21 @@ int busPrices[][2] = {
     {500, 1000}
 };
 
+enum Currency { INR,JPY,USD,EUR,GBP,CNY };
+
+const float conversionRates[] = {
+    1.0f,    // INR
+    0.0069f, // JPY
+    0.012f,  // USD
+    0.011f,  // EUR
+    0.0090f, // GBP
+    0.083f   // CNY
+};
+
+const char *currencyNames[] = {
+    "INR", "JPY", "USD", "EUR", "GBP", "CNY"
+};
+
 int Transport_Choice;
 
 void clearInputBuffer()
@@ -397,7 +412,7 @@ int unique_id()
     return ((int)(now % 1234) | counter++);
 }
 
-void printBookingSummary(const struct PartialBooking *partial, int n)
+void printBookingSummary(const struct PartialBooking *partial, int n,int currency)
 {
     printf("\n +--------------------------------------------------+\n");
     printf(" |                 Booking Summary                  |\n");
@@ -417,9 +432,11 @@ void printBookingSummary(const struct PartialBooking *partial, int n)
     }
     printf("%*s|\n", 39 - (2 * n), ""); // Adjust spacing based on seat numbers
 
-    printf(" | Price: Rs.%-35d |\n", partial->booking.price);
+   printf(" | Price: %s%.2f %s |\n", currencyNames[currency], n, currencyNames[currency]);
     printf(" +--------------------------------------------------+\n");
 }
+
+int selectedCurrency = INR;
 
 void addBooking()
 {
@@ -734,9 +751,28 @@ void addBooking()
             }
         } while (1);
 
-         
-        // Display summary before finalizing booking
-        printBookingSummary(&partial, n); // Improved summary display
+         printf("Select your currency:\n");
+    for (int i = 0; i < sizeof(currencyNames) / sizeof(currencyNames[0]); i++) {
+        printf("%d. %s\n", i + 1, currencyNames[i]);
+    }
+
+    int currencyChoice;
+    do {
+        printf("Enter your choice (1-%ld): ", sizeof(currencyNames) / sizeof(currencyNames[0]));
+        if (scanf("%d", &currencyChoice) != 1 || currencyChoice < 1 || currencyChoice > sizeof(currencyNames) / sizeof(currencyNames[0])) {
+            printf("Invalid choice. Please enter a number between 1 and %ld.\n", sizeof(currencyNames) / sizeof(currencyNames[0]));
+            clearInputBuffer();
+            continue;
+        }
+        selectedCurrency = currencyChoice - 1; 
+        break;
+    } while (1);
+
+    // Calculate price in selected currency
+    float priceInSelectedCurrency = convertPrice(partial.booking.price, selectedCurrency);
+    partial.booking.price = priceInSelectedCurrency;
+      
+        printBookingSummary(&partial, n,selectedCurrency); 
 
         char confirm[10];
 
@@ -996,7 +1032,7 @@ void displayBookings()
 
     // Adjusted header to include "Booked Seat"
     printf("\n +----------------------------------------------------------------------------------------------------------+\n");
-    printf(" | %-10s %-20s %-20s %-20s %-10s %-6.5s %10s|\n", "Ticket ID", "Name", "Current Location", "Destination", "Booked Seat", "Price", "Mode");
+    printf(" | %-10s %-20s %-20s %-20s %-10s %-6.5s %10s|\n", "Ticket ID", "Name", "Current Location", "Destination", "Booked Seat", "Price","currency", "Mode");
     printf(" +----------------------------------------------------------------------------------------------------------+\n");
 
     // Read and display each booking entry
@@ -1016,15 +1052,17 @@ void displayBookings()
         // Display booking information
         if(Transport_Choice==1){
             if(strcmp(booking.mode , "Bus") == 0){
+                 float Price = convertPrice(booking.price, selectedCurrency);
             printf(" | %-10d %-20s %-20s %-20s %-10d Rs.%4d %10s |\n",
                booking.ticketID, booking.name, booking.currentLocation,
-               booking.destination, bookedCount, booking.price ,booking.mode);
+               booking.destination, bookedCount, Price ,currencyNames[selectedCurrency], booking.mode);
             }
         }else{
             if(strcmp(booking.mode , "Train") ==0){
+                 float Price = convertPrice(booking.price, selectedCurrency);
             printf(" | %-10d %-20s %-20s %-20s %-10d Rs.%4d %10s |\n",
                booking.ticketID, booking.name, booking.currentLocation,
-               booking.destination, bookedCount, booking.price ,booking.mode);
+               booking.destination, bookedCount, Price ,currencyNames[selectedCurrency], booking.mode);
             }
         }
     }
