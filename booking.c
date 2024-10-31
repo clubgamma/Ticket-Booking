@@ -138,6 +138,7 @@ void clearInputBuffer()
 }
 void handleInput();
 void recordFeedback(int ticketID, const char* name);
+float convertPrice(float price, int currency);
 
 void TransportMode(struct PartialBooking* partial) {
     while(1){
@@ -1003,6 +1004,10 @@ void displayPoints(const char* userName) {
     printf("No Reedem points found for this user.\n");
 }
 
+float convertPrice(float price, int currency) {
+    return price * conversionRates[currency];
+}
+
 void displayBookings()
 {
     int Transport_Choice;
@@ -1053,7 +1058,7 @@ void displayBookings()
         if(Transport_Choice==1){
             if(strcmp(booking.mode , "Bus") == 0){
                  float Price = convertPrice(booking.price, selectedCurrency);
-            printf(" | %-10d %-20s %-20s %-20s %-10d Rs.%4d %10s |\n",
+            printf(" | %-10d %-20s %-20s %-20s %-10d %4d %10s |\n",
                booking.ticketID, booking.name, booking.currentLocation,
                booking.destination, bookedCount, Price ,currencyNames[selectedCurrency], booking.mode);
             }
