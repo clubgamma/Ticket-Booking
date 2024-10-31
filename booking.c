@@ -770,15 +770,15 @@ void addBooking()
 
                  update_reedem_Points(partial.booking.name, partial.booking.price);
                  int currentPoints = getPoints(partial.booking.name);
-                 printf("Your current loyalty points: %d\n", currentPoints);
+                 printf("Your current Reedem points: %d\n", currentPoints);
 
                  int pointsToRedeem;
-                 printf("Do you want to redeem loyalty points? (Enter points to redeem, 0 to skip): ");
+                 printf("Do you want to redeem Rddem points? (Enter points to redeem, 0 to skip): ");
                  scanf("%d", &pointsToRedeem);
                  clearInputBuffer();
 
                  if (pointsToRedeem > currentPoints) {
-                 printf("Error: You cannot redeem more points than you have. Available points: %d\n", currentPoints);
+                 printf("Error: You cannot reedem more points than you have. Available points: %d\n", currentPoints);
                  pointsToRedeem = 0; 
                }
 
@@ -786,9 +786,9 @@ void addBooking()
                       int redeemedPoints = RedeemPoints(partial.booking.name, pointsToRedeem);
                            if (redeemedPoints > 0) {
                                  partial.booking.price -= redeemedPoints * 100; 
-                                 printf("Loyalty points redeemed successfully! New price: Rs. %d\n", partial.booking.price);
+                                 printf("Reedem points redeemed successfully! New price: Rs. %d\n", partial.booking.price);
                            } else {
-                                 printf("Insufficient Reedem points or error redeeming points.\n");
+                                 printf("Insufficient Reedem points or error reedeming points.\n");
                            }
                 }
                 
@@ -889,7 +889,7 @@ void update_reedem_Points(const char* userName, int bookingPrice) {
         if (file == NULL) {
             file = fopen("reedem_points.dat", "wb+");
             if (file == NULL) {
-                printf("Error: Unable to create loyalty points file.\n");
+                printf("Error: Unable to create Reedem points file.\n");
                 return;
             }
         }
@@ -911,12 +911,12 @@ void update_reedem_Points(const char* userName, int bookingPrice) {
             strncpy(user.name, userName, MAX_NAME_LENGTH);
             user.points = 10; // Start with 10 points for the first booking
             fwrite(&user, sizeof(struct User), 1, file); // Add new user record
-            printf("New user created. Loyalty points: %d\n", user.points);
+            printf("New user created. Reedem points: %d\n", user.points);
         }
 
         fclose(file);
     } else {
-        printf("Booking price is not high enough to earn loyalty points.\n");
+        printf("Booking price is not high enough to earn Reedem points.\n");
     }
 }
 
